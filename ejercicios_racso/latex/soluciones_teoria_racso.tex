@@ -1,5 +1,5 @@
 \documentclass[10pt]{article}
-\usepackage[margin=0.85in]{geometry}
+\usepackage[margin=0.82in]{geometry}
 \usepackage{amsmath, amssymb}
 \usepackage{booktabs}
 \usepackage{enumitem}
@@ -12,664 +12,1018 @@
 \newcommand{\lca}{\operatorname{lca}}
 \newcommand{\tin}{\operatorname{tin}}
 \newcommand{\tout}{\operatorname{tout}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\rankv}{\operatorname{rank}}
+\newcommand{\pred}{\operatorname{pred}}
+\newcommand{\succv}{\operatorname{succ}}
 
-\title{EDA Final - Ruta Racso desde Cero\\
-\large Solo problemas relevantes del grupo Utec CS3014 Projects}
+\title{EDA Final - Soluciones Teoricas Racso\\
+\large Un problema por hoja, explicado desde cero}
 \author{}
 \date{}
 
 \begin{document}
 \maketitle
 
-\section*{Que contiene este documento}
-Este documento queda limitado a los problemas del grupo de Codeforces que si
-sirven para el final segun la lista visible del curso:
+\section*{Como estudiar este PDF}
+Este documento esta escrito para repasar desde cero los problemas que si sirven
+para el final: los concursos utiles del grupo Racso, mas los externos que
+refuerzan exactamente los mismos temas. No hay codigo. En cada problema debes
+aprender a escribir en papel: estructura, algoritmo, correctitud y complejidad.
 
+Los temas que se repiten son:
 \begin{itemize}[leftmargin=*]
-\item Proyecto 5
-\item Semana 13 - Clase 1 - Offline Dynamic Connectivity
-\item Semana 12 - Clase 1 - HLD
-\item Semana 11 - Problemas de strings
-\item Proyecto 4
-\item Semana 10 - Clase 1 - RMQ
+\item RMQ, LCA y consultas en arboles estaticos.
+\item Suffix array, LCP, busqueda y conteo de subcadenas.
+\item Euler tour, DSU on tree, HLD, mascaras de paridad, centroid decomposition.
+\item Dynamic connectivity offline con segment tree sobre tiempo y DSU rollback.
+\item Dynamic trees con Link-Cut Trees o Euler-Tour Trees.
 \end{itemize}
 
-Se quitaron Proyecto 3/BST implicito y Proyecto 2/Efecto cascada porque no son
-prioridad para el final actual. La meta no es practicar todo el curso, sino
-aprender desde cero lo que puede aparecer en el examen.
+No se incluyen Proyecto 2/Efecto cascada ni Proyecto 3/BST implicito porque no
+son prioridad para esta ruta.
 
-\section*{Orden de estudio si empiezas casi desde cero}
-\begin{enumerate}[leftmargin=*]
-\item \textbf{RMQ base}: aprende sparse table y por que responde minimo en
-$\bigO(1)$.
-\item \textbf{LCA/Euler tour}: entiende como convertir arboles en intervalos y
-como usar $\lca$ para caminos.
-\item \textbf{Strings base}: suffix array, LCP, busqueda de patrones,
-subcadenas distintas y longest common substring.
-\item \textbf{Tree queries}: DSU on tree, HLD, mascaras de paridad y centroid
-decomposition solo a nivel conceptual.
-\item \textbf{Offline dynamic connectivity}: segment tree sobre tiempo + DSU
-con rollback.
-\item \textbf{Proyectos 4 y 5}: usalos como integracion de distancias/caminos
-en arboles.
-\end{enumerate}
+\tableofcontents
 
-\section*{Mapa limpio de problemas}
-\begin{center}
-\begin{tabular}{p{0.18\linewidth}p{0.12\linewidth}p{0.38\linewidth}p{0.20\linewidth}}
-\toprule
-Tema & Contest & Problema & Prioridad \\
-\midrule
-RMQ & 694840/A & Static RMQ & Maxima \\
-Strings & 695758/A & Suffix array y LCP array & Maxima \\
-Strings & 695758/B & Busqueda de subcadenas & Maxima \\
-Strings & 695758/C & Contando subcadenas & Alta \\
-Strings & 695758/D & Subcadenas diferentes & Maxima \\
-Strings & 695758/E & Subcadena en comun mas larga & Maxima \\
-Strings & 695758/F & Ordenando subcadenas & Alta \\
-Strings & 695758/G & Bordes & Alta \\
-Strings & 695758/H & Refran & Alta \\
-Strings & 695758/I & Substring periodica & Media/alta \\
-Arboles/HLD & 697527/A & Tree and Queries & Maxima \\
-Arboles/HLD & 697527/B & Arpa letter-marked tree & Alta \\
-Arboles/HLD & 697527/C & Laminar Family & Media \\
-Arboles/HLD & 697527/D & Xenia and Tree & Alta \\
-Arboles/HLD & 697527/E & Beauty and The Tree & Media \\
-Dynamic graph & 698987/A & Connect and Disconnect & Maxima \\
-Offline intervals & 698987/B & Addition on Segments & Alta \\
-Proyecto final & 699336/A & Visitas & Alta \\
-Distancias & 694842/A & Distancia unitaria & Media \\
-\bottomrule
-\end{tabular}
-\end{center}
+\clearpage
+\section{Static RMQ}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/694840/problem/A}
 
-\newpage
-\section{Semana 10 - Static RMQ}
+\subsection*{Resumen}
+Se da un arreglo fijo $A[0..n-1]$ y muchas consultas $[l,r]$. Para cada consulta
+se pide el minimo valor dentro del rango. El arreglo no cambia. Esa palabra,
+\emph{static}, es lo que permite preprocesar fuerte.
 
-\subsection*{Problema A: Static RMQ}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/694840/problem/A}
-
-\subsection*{Que debes aprender primero}
-RMQ significa \emph{Range Minimum Query}. Te dan un arreglo fijo $A$ y muchas
-consultas $[l,r]$. Debes responder:
-\[
-\min(A[l], A[l+1], \ldots, A[r]).
-\]
-La palabra clave es \textbf{static}: el arreglo no cambia. Si el arreglo cambia,
-necesitarias segment tree o Fenwick segun la operacion. Como no cambia, puedes
-preprocesar fuerte.
-
-\subsection*{Solucion principal: sparse table}
-Define una tabla:
+\subsection*{Teoria desde cero}
+RMQ significa \emph{Range Minimum Query}. Si el arreglo cambiara, se usaria un
+segment tree. Pero aqui no cambia, entonces conviene guardar respuestas para
+rangos especiales. La estructura mas importante para empezar es \textbf{sparse
+table}. Guarda minimos de bloques de longitud potencia de dos:
 \[
 st[k][i] = \min(A[i], A[i+1], \ldots, A[i+2^k-1]).
 \]
-Es decir, guarda el minimo de cada bloque de longitud potencia de dos.
-
-La transicion es:
+El bloque de longitud $2^k$ se parte en dos bloques de longitud $2^{k-1}$:
 \[
 st[k][i] = \min(st[k-1][i], st[k-1][i+2^{k-1}]).
 \]
-El bloque grande de longitud $2^k$ se parte en dos bloques de longitud
-$2^{k-1}$.
 
-Para responder $[l,r]$, toma:
+\subsection*{Algoritmo}
+Preprocesa todos los $st[k][i]$. Para consultar $[l,r]$, toma
+$len=r-l+1$ y $k=\lfloor\log_2 len\rfloor$. Usa dos bloques de longitud $2^k$:
+uno empieza en $l$ y el otro termina en $r$:
 \[
-k=\lfloor \log_2(r-l+1)\rfloor.
+ans = \min(st[k][l], st[k][r-2^k+1]).
 \]
-Entonces dos bloques de longitud $2^k$ cubren todo el intervalo:
-\[
-[l,l+2^k-1] \quad \text{y} \quad [r-2^k+1,r].
-\]
-La respuesta es:
-\[
-\min(st[k][l], st[k][r-2^k+1]).
-\]
+Los bloques pueden solaparse.
 
-\subsection*{Por que funciona}
-Los dos bloques pueden solaparse, pero eso no importa porque la operacion
-$\min$ es idempotente:
-\[
-\min(x,x)=x.
-\]
-Mientras ambos bloques cubran todo el rango, el minimo global esta en alguno de
-ellos. Si el minimo cae en la zona solapada, contarlo dos veces no cambia nada.
+\subsection*{Correctitud}
+Los dos bloques cubren todo el intervalo $[l,r]$. El minimo global del intervalo
+esta en al menos uno de los dos bloques. Si los bloques se solapan, no hay
+problema porque el minimo es idempotente: $\min(x,x)=x$. Por eso tomar el minimo
+entre los minimos de ambos bloques devuelve exactamente el minimo del rango.
 
 \subsection*{Complejidad}
-Preprocesamiento:
+Preprocesamiento $\bigO(n\log n)$, memoria $\bigO(n\log n)$ y cada consulta
+$\bigO(1)$. En teoria avanzada existe RMQ con $\bigO(n)$ espacio y $\bigO(1)$
+query usando macro/micro bloques, pero sparse table es la respuesta limpia para
+papel si no piden optimalidad estricta.
+
+\clearpage
+\section{Suffix array y LCP array}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/A}
+
+\subsection*{Resumen}
+Este problema es la base de todo el bloque de strings: construir o razonar con
+el suffix array y el LCP array de una cadena.
+
+\subsection*{Teoria desde cero}
+Un sufijo de $S$ es $S[i..n-1]$. El suffix array $\SA$ es una permutacion de
+posiciones tal que los sufijos quedan ordenados lexicograficamente:
 \[
-\bigO(n\log n).
+S[\SA[0]..] < S[\SA[1]..] < \cdots < S[\SA[n-1]..].
 \]
-Consulta:
+El LCP array mide prefijos comunes entre sufijos consecutivos:
 \[
-\bigO(1).
+\LCP[i]=\operatorname{lcp}(S[\SA[i-1]..],S[\SA[i]..]).
 \]
-Espacio:
-\[
-\bigO(n\log n).
-\]
-Para teoria avanzada, 6.851 muestra RMQ en $\bigO(n)$ espacio y $\bigO(1)$
-query usando bloques macro/micro, pero para resolver y explicar en examen,
-sparse table es la base que debes dominar.
+Un caracter sentinela menor que todos, por ejemplo \texttt{\$}, evita problemas
+cuando un sufijo es prefijo de otro.
 
-\newpage
-\section{Semana 11 - Strings}
-
-\subsection*{Base comun: suffix array y LCP}
-Un sufijo de $S$ es una subcadena que empieza en una posicion $i$ y termina al
-final. El suffix array $\SA$ es el arreglo de posiciones de sufijos ordenados
-lexicograficamente. Si:
-\[
-\SA = [p_0,p_1,\ldots,p_{n-1}],
-\]
-entonces:
-\[
-S[p_0..] < S[p_1..] < \cdots < S[p_{n-1}..].
-\]
-
-El arreglo $\LCP$ guarda cuanto prefijo comun tienen sufijos consecutivos:
-\[
-\LCP[i] = \operatorname{lcp}(S[\SA[i-1]..], S[\SA[i]..]).
-\]
-
-Esto sirve porque muchos problemas de strings se vuelven problemas de ordenar
-sufijos y medir prefijos comunes.
-
-\subsection{A. Suffix array y LCP array}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/A}
-
-\paragraph{Que saber.}
-Debes poder construir y explicar $\SA$ y $\LCP$. El algoritmo de clase mas
-importante es Manber--Myers:
-
-\begin{enumerate}[leftmargin=*]
-\item Primero ordenas sufijos por su primer caracter.
-\item Luego por los primeros $2$ caracteres.
-\item Luego por los primeros $4$.
-\item Luego por $8$, $16$, etc.
-\end{enumerate}
-
-En cada paso, el sufijo que empieza en $i$ se representa por:
+\subsection*{Estructura y algoritmo}
+El algoritmo de clase mas importante es Manber--Myers. Mantiene clases de
+equivalencia para prefijos de longitud $2^k$. Inicialmente se ordena por primer
+caracter. En la ronda $k$, el sufijo que empieza en $i$ se representa por:
 \[
 (rank[i], rank[i+2^k]).
 \]
-Si ordenas esos pares, ordenas por prefijos de longitud $2^{k+1}$.
+Ordenar esos pares equivale a ordenar por los primeros $2^{k+1}$ caracteres.
+Luego se reasignan ranks. Al llegar a longitud al menos $n$, los ranks ordenan
+sufijos completos.
 
-\paragraph{Correctitud.}
-Si ya sabes el orden relativo de todas las subcadenas de longitud $2^k$, entonces
-una subcadena de longitud $2^{k+1}$ queda determinada por sus dos mitades:
-primera mitad y segunda mitad. Por eso ordenar pares de ranks es suficiente.
+\subsection*{Correctitud}
+Si dos sufijos tienen iguales sus primeros $2^{k+1}$ caracteres, entonces sus
+primeros $2^k$ caracteres coinciden y tambien coinciden los siguientes $2^k$.
+Por eso el par de ranks describe correctamente el prefijo doble. Si los pares
+difieren, el orden lexicografico del par decide el orden del prefijo completo.
+Por induccion en $k$, cada ronda ordena por una longitud cada vez mayor, y al
+superar $n$ queda el orden de sufijos.
 
-\paragraph{Complejidad.}
-Hay $\bigO(\log n)$ rondas y cada ronda puede hacerse en $\bigO(n)$ con counting
-sort/radix sort sobre ranks. Total:
-\[
-\bigO(n\log n).
-\]
+\subsection*{Complejidad}
+Hay $\lceil\log n\rceil$ rondas. Si cada ronda se ordena con counting/radix sort
+sobre ranks, cuesta $\bigO(n)$ por ronda y $\bigO(n\log n)$ total. El LCP puede
+calcularse con Kasai en $\bigO(n)$ usando el rank inverso de cada sufijo.
 
-\subsection{B. Busqueda de subcadenas}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/B}
+\clearpage
+\section{Busqueda de subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/B}
 
-\paragraph{Idea.}
-Para buscar un patron $P$ dentro de un texto fijo $S$, construyes el suffix
-array de $S$. Todas las ocurrencias de $P$ son sufijos que empiezan con $P$.
-En orden lexicografico, todos esos sufijos aparecen consecutivos.
+\subsection*{Resumen}
+El objetivo tipico es responder si un patron $P$ aparece en un texto fijo $S$,
+cuantas veces aparece, o listar sus posiciones.
 
-\paragraph{Como se responde.}
-Haces dos busquedas binarias:
-\begin{itemize}[leftmargin=*]
-\item primera posicion del suffix array cuyo sufijo es $\ge P$;
-\item primera posicion cuyo sufijo es $> P$ como prefijo.
-\end{itemize}
-El intervalo entre ambas posiciones contiene todas las ocurrencias.
+\subsection*{Teoria desde cero}
+Un patron aparece en $S$ si existe un sufijo de $S$ que empieza con $P$. En el
+suffix array, los sufijos que empiezan con el mismo prefijo forman un intervalo
+contiguo. Esta es la propiedad central.
 
-\paragraph{Por que no usar KMP siempre.}
-KMP es excelente para un patron. Si tienes muchas consultas sobre el mismo texto,
-suffix array preprocesa el texto una vez y luego cada patron se busca rapido.
+\subsection*{Algoritmo}
+Construye $\SA$ de $S$. Para una consulta con patron $P$:
+\begin{enumerate}[leftmargin=*]
+\item Busca con binary search el primer sufijo que es lexicograficamente mayor
+o igual que $P$.
+\item Busca el primer sufijo que ya es estrictamente mayor que cualquier cadena
+que tenga prefijo $P$.
+\item El intervalo entre ambos limites contiene todas las ocurrencias.
+\end{enumerate}
+Si el intervalo es vacio, el patron no aparece. Si tiene tamano $t$, aparece
+$t$ veces. Las posiciones son los valores $\SA[i]$ dentro del intervalo.
 
-\subsection{C. Contando subcadenas}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/C}
+\subsection*{Correctitud}
+Todos los strings que comparten un prefijo $P$ aparecen juntos en orden
+lexicografico: no puede haber entre ellos un sufijo que no tenga prefijo $P$,
+porque eso romperia el orden en el primer caracter donde difiere. Las dos
+busquedas binarias encuentran exactamente los bordes inferior y superior de ese
+bloque. Por tanto, el intervalo es exactamente el conjunto de ocurrencias.
 
-Este problema entrena la idea de que las ocurrencias de un patron se cuentan por
-el tamano del intervalo de suffix array donde los sufijos tienen ese patron como
-prefijo. Si el intervalo es $[L,R]$, la cantidad de ocurrencias es:
+\subsection*{Complejidad}
+Construccion $\bigO(n\log n)$ con Manber--Myers. Cada comparacion directa cuesta
+$\bigO(|P|)$, asi que query $\bigO(|P|\log n)$ en la version simple. Con LCP y
+RMQ se puede mejorar, pero para teoria de examen basta explicar el intervalo.
+
+\clearpage
+\section{Contando subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/C}
+
+\subsection*{Resumen}
+El nombre puede apuntar a contar ocurrencias de patrones o contar subcadenas con
+alguna condicion. La base para resolverlo es entender que suffix array transforma
+problemas de subcadenas en intervalos de sufijos.
+
+\subsection*{Teoria desde cero}
+Toda subcadena de $S$ es prefijo de algun sufijo. Si quieres contar ocurrencias
+de una subcadena/patron $P$, debes contar cuantos sufijos empiezan con $P$. En
+$\SA$, eso es el tamano de un intervalo contiguo.
+
+\subsection*{Algoritmo para contar ocurrencias}
+Construye $\SA$. Para cada patron $P$, encuentra el intervalo $[L,R]$ de sufijos
+que tienen prefijo $P$ con dos busquedas binarias. La cantidad de ocurrencias es:
 \[
 R-L+1.
 \]
+Si el intervalo no existe, la respuesta es $0$.
 
-Si la variante pide contar subcadenas con alguna propiedad, piensa primero:
-\begin{itemize}[leftmargin=*]
-\item si depende de apariciones de un patron, usa intervalo en $\SA$;
-\item si depende de subcadenas distintas, usa suma de LCP;
-\item si depende de repeticion, usa minimos en rangos de LCP.
-\end{itemize}
-
-\subsection{D. Subcadenas diferentes}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/D}
-
-El numero total de subcadenas de un string de longitud $n$ es:
+\subsection*{Si la pregunta es contar subcadenas distintas}
+Entonces se usa la formula del problema siguiente:
 \[
-\frac{n(n+1)}2.
+\frac{n(n+1)}2-\sum_i \LCP[i].
 \]
-Pero hay repetidas. Al ordenar sufijos, cada sufijo aporta sus prefijos. El
-sufijo $\SA[i]$ aporta $n-\SA[i]$ prefijos, pero los primeros $\LCP[i]$ ya
-aparecieron en el sufijo anterior.
+La diferencia es: contar ocurrencias de un patron usa intervalos; contar
+subcadenas distintas usa el total menos duplicados medidos por LCP.
 
-Formula:
+\subsection*{Complejidad}
+Preprocesar $\SA$ cuesta $\bigO(n\log n)$ o $\bigO(n)$ con DC3/SA-IS. Cada
+consulta de conteo cuesta $\bigO(|P|\log n)$ en la version simple. La memoria es
+$\bigO(n)$ para $\SA$ y ranks, mas lo necesario para LCP si se usa.
+
+\clearpage
+\section{Subcadenas diferentes}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/D}
+
+\subsection*{Resumen}
+Se pide contar cuantas subcadenas distintas tiene una cadena.
+
+\subsection*{Teoria desde cero}
+Un string de longitud $n$ tiene $\frac{n(n+1)}2$ subcadenas contando repetidas.
+Cada subcadena es un prefijo de algun sufijo. Si procesas sufijos en orden
+lexicografico, el sufijo actual aporta nuevos prefijos salvo los que ya compartia
+con el sufijo anterior.
+
+\subsection*{Formula}
+El sufijo que empieza en $\SA[i]$ tiene longitud $n-\SA[i]$, asi que tiene
+$n-\SA[i]$ prefijos. Pero sus primeros $\LCP[i]$ prefijos ya aparecieron como
+prefijos del sufijo anterior en orden lexicografico. Entonces aporta:
 \[
-\#\text{subcadenas distintas}
-= \frac{n(n+1)}2 - \sum_i \LCP[i].
+(n-\SA[i])-\LCP[i].
+\]
+Sumando sobre todos los sufijos:
+\[
+\#distinct = \frac{n(n+1)}2-\sum_i \LCP[i].
 \]
 
-\paragraph{Ejemplo mental.}
-Si dos sufijos vecinos comparten prefijo de longitud $3$, entonces las subcadenas
-de longitud $1$, $2$ y $3$ que empiezan en el segundo sufijo ya fueron contadas
-por el primero.
+\subsection*{Correctitud}
+Cada subcadena se cuenta cuando aparece por primera vez como prefijo de algun
+sufijo en orden lexicografico. Si un prefijo del sufijo actual ya aparecio antes,
+entonces aparece en algun sufijo vecino con prefijo comun; el LCP con el sufijo
+anterior captura exactamente la cantidad de prefijos que no son nuevos. Por eso
+restar la suma de LCP elimina duplicados una sola vez.
 
-\subsection{E. Subcadena en comun mas larga}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/E}
+\subsection*{Complejidad}
+Construir $\SA$ y $\LCP$ domina el costo: $\bigO(n\log n)$ con Manber--Myers y
+Kasai, o $\bigO(n)$ con construccion lineal. El conteo final es $\bigO(n)$.
 
-Dado $A$ y $B$, construye:
+\clearpage
+\section{Subcadena en comun mas larga}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/E}
+
+\subsection*{Resumen}
+Dadas dos cadenas $A$ y $B$, se pide la longitud o contenido de la subcadena mas
+larga que aparece en ambas.
+
+\subsection*{Teoria desde cero}
+Si una cadena $X$ aparece en $A$ y en $B$, entonces existen dos sufijos, uno de
+$A$ y uno de $B$, que tienen a $X$ como prefijo comun. El problema se vuelve
+buscar el mayor LCP entre sufijos de origen distinto.
+
+\subsection*{Algoritmo}
+Concatena:
 \[
 T = A \# B \$,
 \]
-donde $\#$ y $\$$ no aparecen en los strings. Construyes $\SA$ y $\LCP$ de $T$.
-La respuesta es el maximo $\LCP[i]$ tal que los sufijos $\SA[i-1]$ y $\SA[i]$
-vienen de strings distintos.
+donde $\#$ y $\$$ no aparecen en las cadenas. Construye $\SA$ y $\LCP$ de $T$.
+Recorre posiciones consecutivas del suffix array. Si $\SA[i-1]$ viene de $A$ y
+$\SA[i]$ viene de $B$, o viceversa, actualiza la respuesta con $\LCP[i]$.
 
-\paragraph{Por que basta revisar vecinos.}
-Si una subcadena aparece en ambos strings, todos los sufijos que empiezan con esa
-subcadena quedan juntos en el suffix array. Dentro de ese bloque, si hay sufijos
-de ambos strings, existe algun par vecino de origen distinto.
+\subsection*{Correctitud}
+Todos los sufijos que comparten un prefijo $X$ aparecen consecutivos en $\SA$.
+Si en ese bloque hay al menos un sufijo de $A$ y uno de $B$, entonces dentro del
+bloque existe algun par adyacente de origen distinto. El LCP de ese par mide una
+subcadena comun de longitud al menos $|X|$. Por tanto el maximo entre pares
+adyacentes de origen distinto da la subcadena comun mas larga.
 
-\subsection{F. Ordenando subcadenas}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/F}
+\subsection*{Complejidad}
+Construccion de $\SA$ y $\LCP$: $\bigO(n\log n)$ o $\bigO(n)$ segun algoritmo.
+Recorrido final: $\bigO(n)$. Memoria $\bigO(n)$.
 
-Para comparar dos subcadenas $S[l_1,r_1]$ y $S[l_2,r_2]$, necesitas saber su
-primer caracter distinto. Eso se obtiene con:
+\clearpage
+\section{Ordenando subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/F}
+
+\subsection*{Resumen}
+Se deben comparar u ordenar subcadenas de un mismo texto. El problema combina
+suffix array, LCP y RMQ.
+
+\subsection*{Teoria desde cero}
+Para comparar $S[l_1..r_1]$ y $S[l_2..r_2]$, necesitas saber el primer punto
+donde difieren. Eso es el LCP entre los sufijos $S[l_1..]$ y $S[l_2..]$,
+recortado por las longitudes de las subcadenas.
+
+\subsection*{Estructura}
+Construye:
+\begin{itemize}[leftmargin=*]
+\item suffix array $\SA$;
+\item rank inverso: posicion de cada sufijo en $\SA$;
+\item LCP array;
+\item RMQ sobre LCP para obtener LCP entre dos sufijos arbitrarios.
+\end{itemize}
+Si los sufijos de $l_1$ y $l_2$ estan en posiciones $a<b$ en $\SA$:
 \[
-\operatorname{lcp}(l_1,l_2).
-\]
-Para obtener LCP entre sufijos arbitrarios, usas RMQ sobre el arreglo $\LCP$:
-si los sufijos estan en posiciones $a$ y $b$ del suffix array, entonces:
-\[
-\operatorname{lcp}(a,b)=\min(\LCP[a+1],\ldots,\LCP[b]).
+\operatorname{lcp}(l_1,l_2)=\min(\LCP[a+1],\ldots,\LCP[b]).
 \]
 
-\paragraph{Conclusion.}
-Ordenar subcadenas requiere combinar strings con RMQ. Esta es una conexion muy
-probable para examen: suffix array + LCP + RMQ.
+\subsection*{Comparador teorico}
+Sea $x$ el LCP de los sufijos y $len_1,len_2$ las longitudes de las subcadenas.
+Si $x\ge \min(len_1,len_2)$, entonces una subcadena es prefijo de la otra y
+decide la longitud. Si no, se compara $S[l_1+x]$ con $S[l_2+x]$.
 
-\subsection{G. Bordes}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/G}
+\subsection*{Complejidad}
+Preprocesamiento $\bigO(n\log n)$ con sparse table sobre LCP. Cada comparacion
+$\bigO(1)$. Ordenar $q$ subcadenas cuesta $\bigO(q\log q)$ comparaciones.
 
-Un borde es una cadena que es prefijo y sufijo a la vez. Para estudiar desde
-cero, usa KMP:
+\clearpage
+\section{Bordes}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/G}
+
+\subsection*{Resumen}
+Un borde de una cadena es una cadena que es prefijo y sufijo a la vez. Por
+ejemplo, en \texttt{ababa}, \texttt{a} y \texttt{aba} son bordes.
+
+\subsection*{Teoria desde cero}
+La herramienta mas directa es la funcion prefijo de KMP. Para cada posicion $i$:
 \[
 \pi[i] = \text{longitud del mayor borde de } S[0..i].
 \]
-Los bordes de todo $S$ se obtienen siguiendo:
+Si conoces el mayor borde de todo el string, los bordes menores se obtienen
+siguiendo bordes del borde:
 \[
-k=\pi[n-1], \quad k=\pi[k-1], \quad \ldots
+k=\pi[n-1],\quad k=\pi[k-1],\quad \ldots
 \]
-hasta llegar a cero.
 
-\paragraph{Relacion con suffix array.}
-Tambien puedes verlo como LCP entre el sufijo que empieza en $0$ y otros sufijos
-que terminan justo al final, pero KMP es mas simple para bordes.
+\subsection*{Algoritmo}
+Calcula $\pi$. Empieza con $k=\pi[n-1]$. Mientras $k>0$, registra $k$ como una
+longitud de borde y reemplaza $k$ por $\pi[k-1]$. Al final, si el problema pide
+tambien el string completo como borde impropio/propio, se maneja segun definicion.
 
-\subsection{H. Refran}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/H}
+\subsection*{Correctitud}
+Si $X$ es borde de $S$, entonces $X$ es prefijo de $S$ y tambien sufijo. El mayor
+borde esta en $\pi[n-1]$. Cualquier borde menor de $S$ debe ser borde de ese
+mayor borde; por eso seguir la cadena de $\pi$ enumera todos los bordes.
 
-Este tipo de problema suele buscar una subcadena repetida que maximiza una
-funcion como:
+\subsection*{Complejidad}
+KMP prefix function cuesta $\bigO(n)$. Enumerar bordes cuesta proporcional al
+numero de bordes, a lo mucho $\bigO(n)$.
+
+\clearpage
+\section{Refran}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/H}
+
+\subsection*{Resumen}
+Este tipo de problema suele pedir una subcadena repetida que maximiza alguna
+funcion, por ejemplo longitud por frecuencia. La estructura natural es suffix
+array + LCP.
+
+\subsection*{Teoria desde cero}
+Una subcadena aparece $k$ veces si existen $k$ sufijos que tienen esa subcadena
+como prefijo. En el suffix array, esos $k$ sufijos aparecen en un bloque
+consecutivo. La longitud comun minima del bloque se mide por el minimo de los
+LCP internos.
+
+\subsection*{Estructura}
+Interpreta el arreglo LCP como un histograma. Una altura $h$ mantenida sobre un
+intervalo de LCP significa que hay varios sufijos consecutivos que comparten un
+prefijo de longitud al menos $h$. Si el intervalo tiene $w$ barras de LCP, cubre
+$w+1$ sufijos, entonces la frecuencia es $w+1$.
+
+\subsection*{Algoritmo conceptual}
+Usa pila monotona sobre LCP para cada posicion como altura minima de un intervalo
+maximal. Para cada altura $h$, calcula cuantos sufijos consecutivos tienen LCP
+al menos $h$, y evalua la funcion pedida, por ejemplo:
 \[
-\text{longitud} \times \text{frecuencia}.
+h \cdot (cantidad\ de\ sufijos).
 \]
-En suffix array, una subcadena aparece muchas veces si hay muchos sufijos
-consecutivos que comparten un prefijo largo. El arreglo $\LCP$ se interpreta
-como un histograma: un minimo alto en un bloque grande significa una subcadena
-larga que aparece muchas veces.
 
-\paragraph{Estructura mental.}
-Usa pila monotona sobre $\LCP$ para encontrar, para cada altura $h$, el bloque
-mas grande donde todos los LCP son al menos $h$. Eso da frecuencia y longitud.
+\subsection*{Complejidad}
+Construir $\SA+\LCP$ cuesta $\bigO(n\log n)$ o $\bigO(n)$. La pila monotona
+recorre LCP en $\bigO(n)$. Memoria $\bigO(n)$.
 
-\subsection{I. Substring periodica}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/I}
+\clearpage
+\section{Substring periodica}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/I}
 
-Una cadena tiene periodo $p$ si:
+\subsection*{Resumen}
+Una cadena es periodica si se puede describir por repeticiones de un patron mas
+corto. Para substrings, se necesita verificar periodicidad de muchas porciones
+de un texto.
+
+\subsection*{Teoria desde cero}
+Una cadena $X$ de longitud $m$ tiene periodo $p$ si:
 \[
-S[i]=S[i+p]
+X[i]=X[i+p]\quad \text{para todo }0\le i<m-p.
 \]
-siempre que ambas posiciones existan. Para substrings, necesitas verificar
-igualdades largas entre posiciones. Herramientas:
+Si $p$ divide a $m$ y el periodo cubre todo, $X$ es repeticion de un bloque de
+longitud $p$. Herramientas utiles: prefix function, Z-function y LCP entre
+sufijos.
+
+\subsection*{Estructura}
+Para muchas comparaciones de substrings, usa suffix array + LCP + RMQ. Eso
+permite responder en $\bigO(1)$ si dos substrings largas son iguales: basta con
+ver si el LCP de sus posiciones alcanza la longitud requerida.
+
+\subsection*{Algoritmo conceptual}
+Para probar si una substring tiene periodo $p$, verifica que su prefijo de
+longitud $m-p$ coincide con la substring desplazada $p$ posiciones. Eso se
+responde con LCP:
+\[
+\operatorname{lcp}(l,l+p)\ge m-p.
+\]
+Para buscar periodos, se prueban candidatos segun divisores o segun estructura
+del problema.
+
+\subsection*{Complejidad}
+Con preprocesamiento $\SA+\LCP+RMQ$, cada prueba de igualdad de substrings cuesta
+$\bigO(1)$. La complejidad total depende de cuantos periodos candidatos se
+prueben. Este es de los mas avanzados; asegura primero SA, LCP y RMQ.
+
+\clearpage
+\section{Tree and Queries}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/A}
+
+\subsection*{Resumen}
+Cada nodo tiene un color. Cada consulta pregunta, en el subarbol de un nodo
+$v$, cuantos colores aparecen al menos $k$ veces.
+
+\subsection*{Teoria desde cero}
+Euler tour convierte el subarbol de $v$ en un intervalo, pero la pregunta no es
+un simple minimo/suma: pide frecuencias de colores dentro del subarbol. La
+tecnica natural es \textbf{DSU on tree} o \textbf{small-to-large}.
+
+\subsection*{Estructura}
+Para cada color $c$, guarda $cntColor[c]$. Para responder ``cuantos colores
+tienen frecuencia al menos $k$'', guarda tambien informacion por frecuencia,
+por ejemplo un Fenwick sobre $cntFreq[f]$, donde $cntFreq[f]$ es cuantos colores
+aparecen exactamente $f$ veces.
+
+\subsection*{Algoritmo}
+Elige en cada nodo un hijo pesado: el de mayor subarbol. Procesa hijos ligeros y
+borra su informacion. Procesa el hijo pesado y conserva su informacion. Luego
+agrega manualmente todos los nodos de los hijos ligeros y el nodo actual. En ese
+momento la bolsa contiene exactamente el subarbol actual, asi que respondes sus
+consultas.
+
+\subsection*{Correctitud}
+Los subarboles de los hijos de $v$ son disjuntos y junto con $v$ forman todo el
+subarbol de $v$. Al conservar el hijo pesado y agregar los ligeros, la bolsa
+queda exactamente igual al subarbol completo. Como las consultas se responden en
+ese instante, las frecuencias son correctas.
+
+\subsection*{Complejidad}
+Cada nodo se re-agrega solo cuando pertenece a un subarbol ligero. En una ruta
+raiz-hoja hay $\bigO(\log n)$ aristas ligeras, porque al subir por una ligera el
+tamano se duplica. Cota segura: $\bigO(n\log n)$ mas el costo de updates de
+frecuencias.
+
+\clearpage
+\section{Arpa's letter-marked tree}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/B}
+
+\subsection*{Resumen}
+Problema de arbol con letras donde se razona si caminos o conjuntos de letras
+pueden formar palindromos.
+
+\subsection*{Teoria desde cero}
+Una multiconjunto de letras puede reordenarse como palindromo si a lo mucho una
+letra aparece cantidad impar de veces. Esta condicion se representa con una
+mascara de bits: bit $j=1$ si la letra $j$ aparece impar cantidad de veces.
+Una mascara es valida para palindromo si tiene cero o un bit prendido.
+
+\subsection*{Estructura}
+Define $maskRoot[v]$ como xor de letras desde la raiz hasta $v$. La mascara del
+camino $u\leadsto v$ se obtiene combinando mascaras de prefijo y ajustando el
+LCA. Conceptualmente:
+\[
+mask(u,v)=maskRoot[u]\oplus maskRoot[v]\oplus letter[\lca(u,v)].
+\]
+Segun si las letras estan en vertices o aristas, el ajuste cambia, pero la idea
+es xor de prefijos.
+
+\subsection*{Algoritmo}
+Para contar pares o caminos validos, se mantiene un contador de mascaras. Una
+mascara $x$ puede emparejarse con:
+\[
+x \quad \text{o} \quad x\oplus 2^b
+\]
+para cualquier bit $b$. Esto cubre cero o una paridad impar. En subarboles, se
+combina con DSU on tree para mantener conteos de mascaras eficientemente.
+
+\subsection*{Correctitud}
+El xor cancela letras que aparecen dos veces. Por tanto la mascara resultante
+codifica exactamente que letras aparecen impar cantidad de veces en el camino.
+La condicion de palindromo es equivalente a que esa mascara tenga a lo mucho un
+bit encendido.
+
+\subsection*{Complejidad}
+Con alfabeto pequeno, revisar todas las mascaras que difieren en un bit cuesta
+$\bigO(\Sigma)$ por insercion/consulta. Con DSU on tree, cota segura
+$\bigO(n\log n\cdot \Sigma)$.
+
+\clearpage
+\section{Laminar Family}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/C}
+
+\subsection*{Resumen}
+Una familia laminar es una coleccion de conjuntos donde dos conjuntos
+cualesquiera son disjuntos o uno contiene al otro. En arboles, los subarboles
+tienen naturalmente esta forma.
+
+\subsection*{Teoria desde cero}
+Haz un DFS y asigna tiempos $\tin[v]$ y $\tout[v]$. El subarbol de $v$ se vuelve
+el intervalo:
+\[
+[\tin[v],\tout[v]].
+\]
+Un nodo $u$ es ancestro de $v$ si:
+\[
+\tin[u]\le \tin[v]\le \tout[u].
+\]
+Dos subarboles en un arbol no se cruzan parcialmente: o son disjuntos, o uno
+contiene al otro.
+
+\subsection*{Algoritmo conceptual}
+Representa cada conjunto/subarbol por su intervalo Euler. Para verificar si una
+familia es laminar, ordena intervalos por inicio y usa una pila de intervalos
+activos. Cuando entra un intervalo nuevo, debe estar contenido en el ultimo
+activo o empezar despues de que los activos incompatibles terminen. Si hay
+interseccion parcial, no es laminar.
+
+\subsection*{Correctitud}
+La transformacion DFS preserva inclusion de subarboles como inclusion de
+intervalos. Las unicas relaciones validas en una familia laminar son inclusion o
+disjuncion. Por eso detectar cruces parciales entre intervalos es equivalente a
+detectar violaciones de laminaridad.
+
+\subsection*{Complejidad}
+DFS $\bigO(n)$. Ordenamiento $\bigO(m\log m)$ si hay $m$ conjuntos. La verificacion
+con pila es $\bigO(m)$.
+
+\clearpage
+\section{Xenia and Tree}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/D}
+
+\subsection*{Resumen}
+Problema clasico: hay vertices rojos en un arbol. Se actualiza un vertice a rojo
+y se pregunta la distancia al rojo mas cercano.
+
+\subsection*{Teoria desde cero}
+Si recalculas BFS desde cada consulta, es demasiado lento. La estructura natural
+es \textbf{centroid decomposition}. Un centroide es un nodo cuya eliminacion
+parte el arbol en componentes de tamano a lo mucho la mitad. Al descomponer
+recursivamente, cada nodo queda asociado a $\bigO(\log n)$ centroides ancestros.
+
+\subsection*{Estructura}
+Para cada centroide $c$, guarda:
+\[
+best[c]=\min \dist(c,r)
+\]
+entre todos los rojos $r$ ya activados. Para cada nodo $v$, guarda la lista de
+centroides ancestros y la distancia de $v$ a cada uno.
+
+\subsection*{Algoritmo}
+Al pintar $v$ rojo, para cada centroide ancestro $c$ de $v$, actualiza:
+\[
+best[c]=\min(best[c],\dist(v,c)).
+\]
+Para consultar $u$, calcula:
+\[
+\min_c best[c]+\dist(u,c),
+\]
+donde $c$ recorre los centroides ancestros de $u$.
+
+\subsection*{Correctitud}
+Para cualquier rojo $r$ y consulta $u$, existe un nivel de la descomposicion de
+centroides donde los caminos desde $u$ y $r$ se encuentran representados por un
+centroide comun $c$. La distancia via ese centroide se considera como
+$best[c]+\dist(u,c)$. Al tomar minimo sobre todos los centroides ancestros, se
+captura el rojo mas cercano.
+
+\subsection*{Complejidad}
+Cada nodo tiene $\bigO(\log n)$ centroides ancestros. Update y query cuestan
+$\bigO(\log n)$ si las distancias a centroides estan precomputadas. Construccion
+$\bigO(n\log n)$.
+
+\clearpage
+\section{Beauty and The Tree}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/E}
+
+\subsection*{Resumen}
+Problema de arbol mas avanzado, asociado a DP/probabilidad o conteos sobre
+subarboles. No es tan central como Tree and Queries o Xenia, pero entrena
+razonamiento de arboles.
+
+\subsection*{Teoria desde cero}
+Para cualquier DP en arbol, primero se enraiza. Luego se define que informacion
+calcula cada nodo a partir de sus hijos. Si la respuesta de un nodo depende solo
+de su subarbol, un DFS postorden basta. Si depende de todo el arbol visto desde
+ese nodo, se necesita rerooting.
+
+\subsection*{Estructura}
+Guarda:
 \begin{itemize}[leftmargin=*]
-\item Z-function o prefix-function para periodos globales;
-\item LCP entre sufijos para comparar substrings rapidamente;
-\item RMQ sobre LCP para LCP arbitrario.
+\item padre y profundidad;
+\item tamano de subarbol;
+\item valores DP que suben desde hijos;
+\item si hace falta rerooting, valores prefijo/sufijo de contribuciones de hijos.
 \end{itemize}
 
-Este es el mas avanzado del bloque. Si no sabes nada, primero asegura A--E.
+\subsection*{Algoritmo conceptual}
+Primero calcula informacion local de subarboles. Luego, si la query pide
+respuesta global por nodo, realiza una segunda pasada para pasar contribuciones
+del padre hacia hijos. Este patron se llama rerooting DP.
 
-\newpage
-\section{Semana 12 - HLD y Tree Queries}
+\subsection*{Correctitud}
+El postorden es correcto porque al procesar un nodo ya se conocen todos sus
+hijos. El rerooting es correcto porque separa la contribucion del hijo actual de
+la contribucion del resto del arbol, permitiendo reconstruir la respuesta como
+si cada hijo fuera raiz.
 
-\subsection*{Base: caminos y subarboles}
-En un arbol, hay dos tipos de preguntas muy comunes:
+\subsection*{Complejidad}
+Normalmente $\bigO(n)$ o $\bigO(n\log n)$ segun la combinacion de estados. Para
+examen, lo importante es justificar que cada arista se procesa cantidad constante
+de veces.
+
+\clearpage
+\section{Connect and Disconnect}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/A}
+
+\subsection*{Resumen}
+Se agregan y eliminan aristas, y se hacen consultas de conectividad. Como hay
+eliminaciones, DSU normal no basta.
+
+\subsection*{Teoria desde cero}
+DSU responde conectividad incremental: solo agregar aristas. Si borras aristas,
+DSU no sabe separar componentes. La solucion offline convierte cada arista en
+intervalos de vida. Luego procesa el tiempo con un segment tree.
+
+\subsection*{Estructura}
+Usa:
 \begin{itemize}[leftmargin=*]
-\item sobre un subarbol;
-\item sobre el camino entre dos nodos.
+\item mapa de aristas activas para saber inicio de intervalo;
+\item segment tree sobre tiempos $1..q$;
+\item DSU con rollback, sin path compression;
+\item pila de cambios para deshacer unions.
 \end{itemize}
 
-Para subarboles, Euler tour convierte el subarbol de $u$ en el intervalo
-$[\tin(u),\tout(u)]$. Para caminos, usas LCA/HLD.
+\subsection*{Algoritmo}
+Cada arista activa en $[l,r)$ se inserta en $\bigO(\log q)$ nodos del segment
+tree temporal. Recorre el segment tree en DFS. Al entrar a un nodo, une todas
+sus aristas. Si es hoja, responde las consultas de ese tiempo. Al salir, revierte
+el DSU al estado anterior.
 
-\subsection{A. Tree and Queries}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/A}
+\subsection*{Correctitud}
+En una hoja $t$, el camino desde la raiz del segment tree hasta esa hoja contiene
+exactamente todos los nodos temporales cuyos intervalos cubren $t$. Por
+construccion, esos nodos contienen todas y solo las aristas activas en $t$. Por
+eso el DSU representa el grafo correcto para responder conectividad.
 
-Problema: cada nodo tiene color; una consulta pregunta en el subarbol de $v$
-cuantos colores aparecen al menos $k$ veces.
-
-\paragraph{Solucion.}
-Usa DSU on tree. Conservas la informacion del hijo pesado y agregas los hijos
-ligeros solo cuando hace falta. Mantienes:
-\[
-cntColor[c] = \text{apariciones del color }c,
-\]
-y una estructura para saber cuantos colores tienen frecuencia al menos $k$.
-
-\paragraph{Por que funciona.}
-Antes de responder consultas de $v$, la bolsa contiene exactamente su subarbol.
-Los hijos son disjuntos; si agregas todos los hijos y el nodo, tienes el subarbol
-completo.
-
-\paragraph{Complejidad.}
-Cada nodo entra a bolsas asociadas a aristas ligeras $\bigO(\log n)$ veces. La
-cota segura es $\bigO(n\log n)$.
-
-\subsection{B. Arpa's letter-marked tree and Mehrdad's Dokhtar-kosh paths}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/B}
-
-La idea central es palindromos por paridad. Una multiconjunto de letras puede
-formar un palindromo si como maximo una letra aparece cantidad impar de veces.
-Representa paridades con una mascara de bits.
-
-Para un camino, la mascara se obtiene con xor de prefijos desde la raiz. Dos
-mascaras son compatibles si:
-\begin{itemize}[leftmargin=*]
-\item son iguales; o
-\item difieren en exactamente un bit.
-\end{itemize}
-
-Esto suele combinarse con DSU on tree para contar pares dentro de subarboles.
-
-\subsection{C. Laminar Family}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/C}
-
-Una familia laminar cumple que dos conjuntos cualesquiera son disjuntos o uno
-contiene al otro. En arboles, los subarboles tienen esta propiedad cuando se
-representan como intervalos Euler:
-\[
-subtree(u) = [\tin(u),\tout(u)].
-\]
-Dos intervalos de subarbol no se cruzan parcialmente: o son disjuntos o uno
-contiene al otro. La teoria importante es saber probar inclusion con tiempos:
-\[
-u \text{ ancestro de } v
-\iff \tin(u)\le \tin(v)\le \tout(u).
-\]
-
-\subsection{D. Xenia and Tree}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/D}
-
-Problema clasico: hay nodos rojos y consultas por distancia al rojo mas cercano.
-La estructura esperada es centroid decomposition.
-
-\paragraph{Desde cero.}
-Un centroide parte el arbol en componentes de tamano a lo mucho la mitad. Si
-repites recursivamente, cada nodo tiene $\bigO(\log n)$ centroides ancestros.
-
-\paragraph{Operacion pintar.}
-Para un nodo rojo $v$, actualizas cada centroide ancestro $c$ con:
-\[
-best[c] = \min(best[c], dist(v,c)).
-\]
-
-\paragraph{Operacion preguntar.}
-Para un nodo $u$, pruebas todos sus centroides ancestros:
-\[
-\min_c best[c] + dist(u,c).
-\]
-Como hay $\bigO(\log n)$ centroides ancestros, cada operacion cuesta
-$\bigO(\log n)$ si las distancias se obtienen con LCA o precomputacion.
-
-\subsection{E. Beauty and The Tree}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/E}
-
-Este problema es menos central que A--D. Entra como arbol + DP/probabilidad.
-Si aparece algo parecido en examen, la ruta mental es:
-\begin{enumerate}[leftmargin=*]
-\item enraizar el arbol;
-\item calcular tamanos de subarbol;
-\item definir que informacion sube de hijos a padre;
-\item si la respuesta depende de ``ver el arbol desde todos los nodos'', usar
-rerooting.
-\end{enumerate}
-
-\newpage
-\section{Semana 13 - Offline Dynamic Connectivity}
-
-\subsection{A. Connect and Disconnect}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/A}
-
-Este es core para dynamic graph. Hay operaciones que conectan y desconectan
-aristas, y consultas de conectividad. DSU normal no puede borrar aristas, por
-eso se procesa offline.
-
-\paragraph{Paso 1: convertir aristas en intervalos de vida.}
-Si una arista se agrega en tiempo $l$ y se elimina en tiempo $r$, entonces vive
-en el intervalo $[l,r)$. Si nunca se elimina, vive hasta el final.
-
-\paragraph{Paso 2: segment tree sobre tiempo.}
-Cada intervalo de vida se descompone en $\bigO(\log q)$ nodos de un segment tree
-que cubre los tiempos.
-
-\paragraph{Paso 3: DFS con DSU rollback.}
-Al entrar a un nodo del segment tree, agregas todas sus aristas al DSU. Al salir,
-deshaces esas uniones. En una hoja, el DSU contiene exactamente las aristas
-activas en ese instante.
-
-\paragraph{Por que rollback.}
-Path compression hace dificil deshacer cambios. Por eso DSU rollback usa union
-by size/rank, guarda cambios en una pila, y revierte al salir del intervalo.
-
-\paragraph{Complejidad.}
-Cada arista aparece en $\bigO(\log q)$ nodos. Cada union/find cuesta
-$\bigO(\log n)$ sin compresion o casi constante en la practica con union by size.
-La cota segura:
+\subsection*{Complejidad}
+Cada intervalo va a $\bigO(\log q)$ nodos. Cada union/find cuesta $\bigO(\log n)$
+sin compresion o casi constante en practica con union by size. Cota segura:
 \[
 \bigO((q+m)\log q \log n).
 \]
 
-\subsection{B. Addition on Segments}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/B}
+\clearpage
+\section{Addition on Segments}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/B}
 
-Aunque no sea grafo, entrena la misma idea: una operacion existe en un intervalo.
-Cuando veas ``agregar algo en un segmento de tiempo'' o ``activar/desactivar'',
-piensa en segment tree sobre tiempo.
+\subsection*{Resumen}
+Problema de operaciones activas en segmentos. Aunque no sea grafo, entrena el
+mismo patron mental que offline dynamic connectivity: objetos que viven en
+intervalos.
 
-La leccion importante para el examen:
+\subsection*{Teoria desde cero}
+Si una operacion afecta un rango de tiempos o posiciones, puedes descomponer ese
+rango en nodos de un segment tree. Asi evitas aplicar la operacion uno por uno
+en cada punto.
+
+\subsection*{Estructura}
+Segment tree sobre el eje relevante: tiempo, posiciones o indices. Cada nodo
+guarda las operaciones que cubren completamente su intervalo. Si el problema
+requiere deshacer, la estructura interna debe soportar rollback.
+
+\subsection*{Algoritmo}
+Para cada operacion de adicion sobre $[l,r]$, insertala en el segment tree en
+$\bigO(\log n)$ nodos. Recorre el arbol manteniendo el estado acumulado. En hojas
+respondes el valor final o la consulta correspondiente. Al volver, deshaces lo
+que agregaste si el estado no es persistente.
+
+\subsection*{Correctitud}
+Todo punto $x$ pertenece exactamente a los nodos del camino raiz-hoja que lo
+cubren. Una operacion insertada en nodos que particionan $[l,r]$ estara activa
+exactamente para los puntos de ese rango. Por eso al llegar a una hoja, el estado
+incluye todas y solo las operaciones relevantes.
+
+\subsection*{Complejidad}
+Cada intervalo se guarda en $\bigO(\log n)$ nodos. Si cada aplicar/deshacer cuesta
+$T$, el total es $\bigO(Q\log n\cdot T)$.
+
+\clearpage
+\section{Visitas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/699336/problem/A}
+
+\subsection*{Resumen}
+Es el problema tipo \emph{Milk Visits}. Hay un arbol de granjas; cada nodo tiene
+un tipo de vaca. Cada consulta da dos nodos $a,b$ y un tipo $c$. Se pregunta si
+en el camino entre $a$ y $b$ existe al menos un nodo de tipo $c$.
+
+\subsection*{Teoria desde cero}
+Una solucion general con HLD podria consultar colores en caminos, pero seria mas
+pesada. La observacion clasica de Milk Visits es por componentes de igual color.
+Si dos nodos $a$ y $b$ estan en la misma componente maximal de nodos del mismo
+tipo, entonces todo el camino entre ellos tiene ese mismo tipo. Si el tipo
+preferido $c$ es distinto, no habra ningun $c$ en ese camino.
+
+\subsection*{Estructura}
+Comprime componentes conectadas de nodos con el mismo tipo. Asigna a cada nodo
+un id de componente. Para una consulta $(a,b,c)$:
 \begin{itemize}[leftmargin=*]
-\item si hay operaciones que se activan y desactivan;
-\item y puedes leer todo el input antes de responder;
-\item entonces convierte cada objeto en intervalos de vida.
+\item si $comp[a]\ne comp[b]$, el camino cruza al menos dos componentes de tipos
+distintos, y se puede satisfacer cualquier consulta cuyo criterio sea la version
+clasica de Milk Visits;
+\item si $comp[a]=comp[b]$, todo el camino tiene el tipo de esa componente, y la
+respuesta es si ese tipo coincide con $c$.
 \end{itemize}
 
-\newpage
-\section{Proyecto 5 y Proyecto 4}
+\subsection*{Correctitud}
+Una componente maximal de igual tipo contiene exactamente nodos conectados por
+caminos de ese tipo. Si $a$ y $b$ estan en la misma componente, el camino unico
+entre ellos no sale de la componente, por tanto todos sus nodos tienen el mismo
+tipo. Si estan en componentes distintas, el camino cambia de tipo al menos una
+vez; en la version clasica, eso garantiza satisfaccion salvo cuando el camino
+entero es de un unico tipo distinto al pedido.
 
-\subsection{Proyecto 5: Visitas}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/699336/problem/A}
+\subsection*{Complejidad}
+DFS para construir componentes: $\bigO(n)$. Cada consulta: $\bigO(1)$. Memoria:
+$\bigO(n)$.
 
-Por estar al final del bloque y por el nombre, debe tratarse como problema de
-arboles/caminos/visitas. Si es una variante tipo consultas sobre caminos, las
-herramientas probables son:
+\clearpage
+\section{Distancia unitaria}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/694842/problem/A}
+
+\subsection*{Resumen}
+Se da un arbol enraizado en $1$. Cada consulta da un conjunto de vertices. Se
+pregunta si existe un camino desde la raiz hasta algun nodo $u$ tal que cada
+vertice de la consulta este en ese camino o a distancia $1$ de algun vertice del
+camino.
+
+\subsection*{Teoria desde cero}
+Si un vertice $v$ esta a distancia $1$ de un camino raiz-$u$, entonces su padre
+puede estar en el camino. Por eso se transforma cada vertice consultado en su
+padre (excepto la raiz, que se queda igual). Luego la pregunta se vuelve: estan
+todos esos vertices transformados sobre un mismo camino desde la raiz?
+
+\subsection*{Estructura}
+Preprocesa:
 \begin{itemize}[leftmargin=*]
-\item LCA para descomponer caminos;
-\item diferencias en arbol si las visitas son offline;
-\item HLD si hay updates/queries sobre caminos;
-\item DSU on tree si las visitas son por subarbol/color.
+\item profundidad;
+\item padre inmediato;
+\item tiempos Euler $\tin,\tout$ para ancestro;
+\item opcionalmente LCA.
+\end{itemize}
+Un nodo $x$ es ancestro de $y$ si:
+\[
+\tin[x]\le \tin[y]\le \tout[x].
+\]
+
+\subsection*{Algoritmo}
+Para cada consulta, reemplaza cada vertice $v$ por $parent[v]$ si $v\ne 1$.
+Elige el vertice transformado mas profundo, llamalo $deep$. La respuesta es
+YES si todos los vertices transformados son ancestros de $deep$. Si alguno no
+lo es, no existe un unico camino raiz-$u$ que los cubra.
+
+\subsection*{Correctitud}
+Despues de subir cada vertice a su padre, la condicion de estar en el camino o a
+distancia $1$ se convierte en estar sobre el camino. Si todos los transformados
+estan en un camino raiz-$u$, el mas profundo de ellos puede actuar como extremo
+o estar antes del extremo, y todos los demas deben ser ancestros de el. Si alguno
+no es ancestro del mas profundo, se ramifica hacia otro lado y ningun camino
+simple desde la raiz puede contenerlos a todos.
+
+\subsection*{Complejidad}
+DFS inicial $\bigO(n)$. Cada consulta cuesta proporcional a su tamano. Como la
+suma de tamanos de consultas esta acotada, el total es $\bigO(n+\sum k_i)$.
+
+\clearpage
+\section{Imperial roads}
+\textbf{Link.} \url{https://codeforces.com/gym/101889/problem/I}
+
+\subsection*{Resumen}
+Se tiene un grafo ponderado. Para cada consulta, una arista debe estar incluida
+en el arbol generador. Se pide el minimo peso posible.
+
+\subsection*{Teoria desde cero}
+Primero construye un MST con Kruskal. Si fuerzas una arista que no esta en el
+MST, al agregarla aparece un ciclo. Para volver a tener un arbol, debes eliminar
+una arista de ese ciclo. Para minimizar el costo, eliminas la arista mas pesada
+del camino dentro del MST.
+
+\subsection*{Estructura}
+Necesitas responder maximo peso de arista en el camino entre dos nodos del MST.
+Usa LCA con binary lifting augmentado:
+\begin{itemize}[leftmargin=*]
+\item $up[v][j]$: ancestro $2^j$ de $v$;
+\item $mx[v][j]$: maximo peso en el salto de $v$ a $up[v][j]$.
 \end{itemize}
 
-Como no debes aprender todo, la regla practica es:
-\begin{enumerate}[leftmargin=*]
-\item Si preguntan cantidad de rutas que pasan por aristas: diferencia en arbol.
-\item Si preguntan max/min/suma en camino con cambios: HLD.
-\item Si preguntan colores en subarbol: DSU on tree.
-\item Si preguntan conectividad con cambios: offline dynamic connectivity.
-\end{enumerate}
-
-\subsection{Proyecto 4: Distancia unitaria}
-Link:
-\url{https://codeforces.com/group/AmklRC8lhZ/contest/694842/problem/A}
-
-Si es de distancias en arbol, la formula que debes memorizar es:
+\subsection*{Algoritmo}
+Sea $W$ el peso del MST. Para consulta $(u,v,w)$:
 \[
-dist(u,v)=depth[u]+depth[v]-2depth[\lca(u,v)].
+ans = W + w - \operatorname{maxEdge}(u,v).
 \]
-Si es de grafo no ponderado, la palabra ``unitaria'' sugiere BFS porque todas
-las aristas pesan 1. Para el final, este problema vale como practica secundaria:
-distancia en arbol/grafo, no como tema principal.
+Para calcular $\operatorname{maxEdge}$, iguala profundidades subiendo el nodo
+mas profundo y acumulando maximos; luego sube ambos nodos juntos hasta llegar al
+LCA.
 
-\newpage
-\section{Problemas externos utiles que si se conservan}
+\subsection*{Correctitud}
+Agregar $(u,v,w)$ al MST crea un ciclo unico. Todo arbol que incluya esa arista
+y use las demas del MST salvo una debe eliminar una arista del camino $u-v$.
+Eliminar la mas pesada minimiza el nuevo peso. La propiedad del ciclo de MST
+respalda que la arista mas pesada del ciclo es la candidata natural a remover.
 
-Estos problemas no son Proyecto 2/BST ni Efecto cascada; si sirven porque
-entrenan exactamente los temas finales: RMQ/LCA, strings y dynamic graph.
+\subsection*{Complejidad}
+Kruskal $\bigO(m\log m)$. Preprocesamiento LCA $\bigO(n\log n)$. Cada consulta
+$\bigO(\log n)$. Memoria $\bigO(n\log n)$.
 
-\subsection{Imperial roads}
-Link:
-\url{https://codeforces.com/gym/101889/problem/I}
+\clearpage
+\section{Fools and Roads}
+\textbf{Link.} \url{https://codeforces.com/problemset/problem/191/C}
 
-Tema: MST + LCA/RMQ. Construyes un MST con peso total $W$. Para una arista
-forzada $(u,v,w)$, al agregarla al MST aparece un ciclo formado por esa arista
-y el camino entre $u$ y $v$ en el MST. Para mantener un arbol que incluya la
-arista forzada, eliminas la arista mas pesada del camino. Respuesta:
-\[
-W+w-\operatorname{maxEdge}(u,v).
-\]
-La estructura de consulta es LCA con maximo en saltos binarios, o HLD con segment
-tree de maximos.
+\subsection*{Resumen}
+Se da un arbol y muchas rutas entre pares de vertices. Para cada arista, se pide
+cuantas rutas pasan por ella.
 
-\subsection{Fools and Roads}
-Link:
-\url{https://codeforces.com/problemset/problem/191/C}
+\subsection*{Teoria desde cero}
+Actualizar cada camino arista por arista seria lento. Como todas las rutas se
+conocen antes de responder, se usa diferencia en arbol. Es la version arborea de
+un difference array.
 
-Tema: LCA + diferencia en arbol. Para cada ruta $(u,v)$:
+\subsection*{Algoritmo}
+Para cada ruta $(u,v)$:
 \[
 delta[u]++,\quad delta[v]++,\quad delta[\lca(u,v)]-=2.
 \]
-Luego haces DFS postorden. El acumulado de un hijo indica cuantas rutas pasan por
-la arista entre ese hijo y su padre. Es mejor que HLD porque todas las rutas se
-conocen offline y solo se necesita contar al final.
+Luego haces DFS postorden. Para cada hijo $x$, sumas sus acumulados hacia el
+padre. El valor final acumulado en $x$ es la cantidad de rutas que pasan por la
+arista $(parent[x],x)$.
 
-\subsection{Frequency of String}
-Link:
-\url{https://codeforces.com/problemset/problem/963/D}
+\subsection*{Correctitud}
+Una ruta $u-v$ sube desde $u$ hasta $a=\lca(u,v)$ y baja hasta $v$. Los $+1$ en
+$u$ y $v$ hacen que al acumular suban dos contribuciones. Restar $2$ en el LCA
+cancela ambas antes de que pasen por encima del LCA. Asi se marcan exactamente
+las aristas de la ruta y ninguna otra. Por linealidad, funciona para todas las
+rutas juntas.
 
-Tema: strings y ventanas de ocurrencias. Para un patron $P$, si sus ocurrencias
-en el texto empiezan en:
+\subsection*{Complejidad}
+Preprocesar LCA $\bigO(n\log n)$. Cada ruta $\bigO(\log n)$. DFS final
+$\bigO(n)$. Total $\bigO((n+q)\log n)$.
+
+\clearpage
+\section{Frequency of String}
+\textbf{Link.} \url{https://codeforces.com/problemset/problem/963/D}
+
+\subsection*{Resumen}
+Para un texto fijo y consultas $(k,P)$, se pide la minima longitud de una
+subcadena que contenga al patron $P$ al menos $k$ veces.
+
+\subsection*{Teoria desde cero}
+Si conoces todas las posiciones donde aparece $P$:
 \[
 p_1<p_2<\cdots<p_t,
 \]
-la minima subcadena que contiene $k$ ocurrencias se obtiene con:
+entonces una ventana con $k$ ocurrencias consecutivas desde $p_i$ hasta
+$p_{i+k-1}$ tiene longitud:
 \[
-\min_i \bigl(p_{i+k-1}-p_i+|P|\bigr).
+p_{i+k-1}-p_i+|P|.
 \]
-El reto es obtener las listas de ocurrencias de muchos patrones. Las herramientas
-naturales son Aho-Corasick para muchos patrones, o suffix array si se razona por
-intervalos lexicograficos.
+La respuesta es el minimo sobre $i$.
 
-\subsection{Yosupo - Dynamic Graph Vertex Add Component Sum}
-Link:
-\url{https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum}
+\subsection*{Estructura}
+Para muchos patrones, usa Aho-Corasick: insertas todos los patrones en un trie,
+construyes enlaces de fallo y recorres el texto una vez para recolectar
+ocurrencias. Alternativamente, suffix array permite encontrar el intervalo de
+sufijos que empiezan con $P$, pero luego hay que ordenar posiciones por aparicion
+en el texto.
 
-Tema: dynamic connectivity offline con suma de componente. Cada arista tiene
-intervalos de vida. Se usa segment tree sobre tiempo y DSU rollback. El DSU
-guarda tambien suma de pesos por componente. En cada hoja temporal, la estructura
-representa exactamente el grafo activo en ese momento.
+\subsection*{Correctitud}
+Cualquier subcadena que contiene $k$ ocurrencias tiene una primera ocurrencia y
+una k-esima ocurrencia. Para contener la k-esima debe terminar al menos en
+$p_{i+k-1}+|P|-1$. Tomar exactamente desde $p_i$ hasta ese final alcanza esa
+longitud. Por tanto revisar ocurrencias consecutivas es suficiente y optimo.
 
-\subsection{Yosupo - Dynamic Tree Subtree Add Subtree Sum}
-Link:
-\url{https://judge.yosupo.jp/problem/dynamic_tree_subtree_add_subtree_sum}
+\subsection*{Complejidad}
+Aho-Corasick se construye en $\bigO(L)$ o $\bigO(L|\Sigma|)$ segun transiciones,
+donde $L$ es suma de longitudes. El recorrido del texto es $\bigO(n)$ mas
+ocurrencias reportadas. Para cada patron, calcular ventanas cuesta lineal en su
+numero de ocurrencias.
 
-Tema: Euler-tour trees. Un arbol dinamico se representa como una secuencia Euler
-guardada en un BST balanceado. Link y cut son operaciones de split/merge. Sumar
-en subarbol y consultar suma de subarbol son operaciones de intervalo con lazy
-propagation.
+\clearpage
+\section{Yosupo - Dynamic Graph Vertex Add Component Sum}
+\textbf{Link.} \url{https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum}
 
-\subsection{SPOJ - Dynamic Tree Connectivity}
-Link:
-\url{https://www.spoj.com/problems/DYNACON1/}
+\subsection*{Resumen}
+Grafo dinamico con pesos en vertices. Hay cambios de aristas, incrementos de
+valor en vertices y consultas de suma de la componente de un vertice.
 
-Tema: conectividad dinamica en bosques. Online se resuelve con Link-Cut Trees o
-Euler-Tour Trees. Offline se puede resolver con segment tree sobre tiempo y DSU
-rollback. Es buen puente entre dynamic tree y dynamic graph.
+\subsection*{Teoria desde cero}
+El problema combina conectividad dinamica con agregados de componente. Offline,
+la herramienta central es segment tree sobre tiempo + DSU rollback. El DSU no
+solo guarda padre/tamano, tambien suma total de cada componente.
 
-\newpage
-\section{Resumen final: que estudiar y que ignorar}
+\subsection*{Algoritmo}
+Convierte cada arista en intervalos de vida. Inserta cada intervalo en el
+segment tree temporal. Recorre en DFS: al entrar, unes aristas y actualizas
+sumas; en hojas, respondes la suma de la componente del vertice consultado; al
+salir, reviertes cambios.
 
-\subsection*{Estudia}
+\subsection*{Correctitud}
+En la hoja $t$, el DSU contiene exactamente las aristas activas en $t$. Como cada
+union actualiza la suma de la nueva componente y rollback restaura el estado
+anterior, el agregado guardado en la raiz es exactamente la suma de la componente
+actual.
+
+\subsection*{Complejidad}
+Cada intervalo aparece en $\bigO(\log q)$ nodos. Cota segura
+$\bigO((q+m)\log q\log n)$ sin path compression. Memoria
+$\bigO((q+m)\log q)$ para intervalos.
+
+\clearpage
+\section{Yosupo - Dynamic Tree Subtree Add Subtree Sum}
+\textbf{Link.} \url{https://judge.yosupo.jp/problem/dynamic_tree_subtree_add_subtree_sum}
+
+\subsection*{Resumen}
+Arbol dinamico con link/cut, update de suma en subarbol y query de suma de
+subarbol.
+
+\subsection*{Teoria desde cero}
+HLD clasico no basta porque el arbol cambia. Una estructura natural es
+Euler-Tour Tree: representar cada arbol como una secuencia Euler guardada en un
+BST balanceado implicito. Cortar y enlazar se vuelven operaciones de split y
+merge sobre secuencias.
+
+\subsection*{Estructura}
+Cada nodo del BST guarda:
 \begin{itemize}[leftmargin=*]
-\item Static RMQ.
-\item Suffix array, LCP, busqueda de patrones, subcadenas distintas, LCS,
-bordes y periodicidad.
-\item DSU on tree, Euler tour, LCA, mascaras xor en arboles.
-\item Centroid decomposition para Xenia and Tree a nivel de idea.
-\item Offline dynamic connectivity con segment tree sobre tiempo y DSU rollback.
-\item Imperial roads, Fools and Roads, Frequency of String, Yosupo dynamic
-graph/tree y SPOJ Dynamic Tree Connectivity.
-\item Proyecto 5 y Proyecto 4 solo como integracion de arboles/distancias.
+\item tamano del segmento;
+\item suma del segmento;
+\item lazy add pendiente;
+\item punteros para split/merge.
 \end{itemize}
+El subarbol de un nodo se representa como un intervalo bajo una orientacion de
+raiz adecuada.
 
-\subsection*{Ignora para esta ruta}
-\begin{itemize}[leftmargin=*]
-\item Proyecto 3 - BST implicito.
-\item Proyecto 2 - Efecto cascada.
-\item Cualquier otro problema externo que no sea Imperial, Fools and Roads,
-Frequency of String, Yosupo dynamic graph/tree o SPOJ Dynamic Tree Connectivity,
-salvo que el profesor lo mencione directamente.
-\end{itemize}
+\subsection*{Algoritmo}
+Para update de subarbol, aisla el intervalo del subarbol con splits, aplica lazy
+add y vuelve a unir. Para query, aisla el intervalo, lee la suma agregada y
+vuelve a unir. Link y cut modifican la secuencia Euler con split/merge.
 
-\section*{Checklist para resolver en papel}
+\subsection*{Correctitud}
+El invariante es que la secuencia Euler representa exactamente el arbol actual.
+Los splits no cambian el orden interno, solo aislan intervalos. Como el subarbol
+corresponde a un intervalo, lazy add afecta exactamente sus vertices, y la suma
+agregada corresponde exactamente al subarbol.
+
+\subsection*{Complejidad}
+Cada split/merge cuesta $\bigO(\log n)$ esperado/amortizado. Cada operacion usa
+cantidad constante de splits/merges: $\bigO(\log n)$.
+
+\clearpage
+\section{SPOJ - Dynamic Tree Connectivity}
+\textbf{Link.} \url{https://www.spoj.com/problems/DYNACON1/}
+
+\subsection*{Resumen}
+Bosque dinamico con operaciones link, cut y connected. Se pregunta si dos
+vertices estan en la misma componente.
+
+\subsection*{Teoria desde cero}
+Si solo hubiera link, DSU bastaria. Con cut, DSU no puede separar. Online se
+usan Link-Cut Trees o Euler-Tour Trees. Offline tambien se puede usar segment
+tree sobre tiempo + DSU rollback.
+
+\subsection*{Opcion online}
+Link-Cut Tree mantiene preferred paths con splay trees. Permite link, cut y
+find-root en $\bigO(\log n)$ amortizado. Dos nodos estan conectados si tienen la
+misma raiz representada.
+
+\subsection*{Opcion offline}
+Cada arista tiene intervalos de vida entre link y cut. Se inserta en segment
+tree temporal y se recorre con DSU rollback. En hojas, connected se responde
+comparando representantes.
+
+\subsection*{Correctitud}
+En Link-Cut/Euler-Tour Trees, el invariante es que la estructura representa el
+bosque actual. En rollback, el invariante es temporal: al llegar a la hoja $t$,
+el DSU contiene exactamente las aristas activas en $t$.
+
+\subsection*{Complejidad}
+Online: $\bigO(\log n)$ amortizado por operacion. Offline: cada intervalo en
+$\bigO(\log q)$ nodos, total aproximadamente $\bigO(q\log q\log n)$ con DSU
+rollback sin compresion.
+
+\clearpage
+\section{Resumen final}
+
+\subsection*{Lo que debes dominar si no sabes nada}
 \begin{enumerate}[leftmargin=*]
-\item Identifica si es string, arbol estatico, camino en arbol, subarbol, o
-grafo dinamico.
-\item Escribe la estructura: sparse table, suffix array, DSU on tree, HLD,
-centroid decomposition, o DSU rollback.
-\item Escribe el invariante: que guarda la estructura y por que representa el
-problema.
-\item Prueba correctitud en 5-8 lineas.
-\item Cierra con complejidad de preprocesamiento, query, update y memoria.
+\item Sparse table para RMQ.
+\item Suffix array y LCP.
+\item Busqueda de patron como intervalo en suffix array.
+\item Formula de subcadenas distintas.
+\item LCP + RMQ para comparar subcadenas.
+\item Euler tour, LCA y ancestros por tiempos.
+\item DSU on tree para consultas de subarbol.
+\item Mascaras xor para paridad en caminos.
+\item Centroid decomposition para distancia a nodo activado.
+\item Segment tree sobre tiempo + DSU rollback para dynamic connectivity.
+\item MST + max edge path para Imperial Roads.
+\item Euler-Tour Trees/Link-Cut Trees como estructuras dinamicas de arbol.
+\end{enumerate}
+
+\subsection*{Formato de respuesta de examen}
+Para cada problema escribe:
+\begin{enumerate}[leftmargin=*]
+\item Que estructura uso y por que.
+\item Que guarda la estructura.
+\item Como se responde una consulta/update.
+\item Invariante de correctitud.
+\item Complejidad de preprocesamiento, query/update y memoria.
 \end{enumerate}
 
 \end{document}
