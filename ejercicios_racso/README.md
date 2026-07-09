@@ -1,45 +1,39 @@
 # Ejercicios Racso - EDA Final
 
-Material orientado al final de EDA, usando los problemas del grupo de Codeforces indicado por el usuario y los problemas visibles/identificados en capturas previas.
-
-## Estado del scrape del grupo
-
-URL objetivo:
+Carpeta filtrada para estudiar solo lo que puede servir para el final desde el grupo de Codeforces:
 
 - https://codeforces.com/group/AmklRC8lhZ/contests
 
-Desde terminal, Codeforces devuelve un challenge de Cloudflare. Desde el navegador integrado, la pagina redirige al home sin mostrar el grupo porque no hay sesion activa. Por eso no se pudo listar automaticamente todos los contests del grupo en esta pasada.
+## Que se conserva
 
-Para completar el scrape exacto del grupo:
+- Semana 10 - Clase 1 - RMQ
+- Semana 11 - Problemas de strings
+- Semana 12 - Clase 1 - HLD
+- Semana 13 - Clase 1 - Offline Dynamic Connectivity
+- Proyecto 5
+- Proyecto 4
 
-1. Abre Codeforces en el navegador integrado.
-2. Inicia sesion y entra al grupo si hace falta.
-3. Avisame "ya entre al grupo".
-4. Yo continuo y extraigo la tabla de contests/problemas visibles.
+## Que se quito
 
-## Restriccion importante
-
-No se copian enunciados completos de Codeforces/Yosupo/SPOJ en archivos editables. Se guarda:
-
-- link exacto del problema;
-- resumen fiel del enunciado;
-- teoria necesaria;
-- estrategia de solucion;
-- prueba de correctitud;
-- analisis de complejidad;
-- comparacion con estructuras alternativas.
-
-Los enunciados oficiales completos quedan referenciados por URL.
+- Proyecto 3 - BST implicito
+- Proyecto 2 - Efecto cascada
+- Problemas externos que no pertenecen a esta lista del grupo
 
 ## Archivos principales
 
-- `indices/problemas_mapeados.md`: lista inicial de problemas relevantes.
-- `latex/soluciones_teoria_racso.tex`: workbook teorico extenso sin codigo.
+- `indices/problemas_mapeados.md`: lista limpia de problemas que si valen.
+- `indices/scrape_status.md`: estado del scrape autenticado del grupo.
+- `latex/soluciones_teoria_racso.tex`: ruta teorica desde cero, sin codigo.
 - `latex/soluciones_teoria_racso.pdf`: PDF compilado.
+- `problemas/`: resumen por bloque de estudio.
 
-## Prioridad de estudio
+## Orden para estudiar desde cero
 
-1. Strings: `Frequency of String`.
-2. Static trees / RMQ / LCA: `Imperial roads`, `Fools and Roads`.
-3. Dynamic graph/tree: Yosupo dynamic graph/tree y SPOJ dynamic tree connectivity.
-4. Tree offline / small-to-large: `Tree and Queries`.
+1. RMQ: sparse table.
+2. Strings: suffix array, LCP, pattern matching, subcadenas distintas, LCS.
+3. Arboles: Euler tour, LCA, DSU on tree, mascaras xor, centroid decomposition.
+4. Dynamic graph: segment tree sobre tiempo + DSU rollback.
+5. Proyectos 4 y 5 como practica de integracion.
+
+No memorices codigo. Para el examen debes poder escribir: idea, estructura,
+correctitud, pseudocodigo general y complejidad.

@@ -21,26 +21,27 @@ Luego de que el usuario inicio sesion en el navegador integrado, se pudo leer la
 
 - `https://codeforces.com/group/AmklRC8lhZ/contests`
 
-Se extrajeron 8 contests visibles y 27 problemas del grupo. El indice final esta en:
+Se extrajeron 8 contests visibles y 27 problemas del grupo. Luego se filtro el material para conservar solo los 6 contests utiles de la captura:
+
+- Proyecto 5
+- Semana 13 - Clase 1 - Offline Dynamic Connectivity
+- Semana 12 - Clase 1 - HLD
+- Semana 11 - Problemas de strings
+- Proyecto 4
+- Semana 10 - Clase 1 - RMQ
+
+El indice final esta en:
 
 - `indices/problemas_mapeados.md`
 
 ## Trabajo completado
 
-Se armo un set inicial con los problemas ya identificados por las capturas y por busqueda publica:
-
-- Codeforces 375D - Tree and Queries
-- Codeforces 963D - Frequency of String
-- Codeforces 191C - Fools and Roads
-- ICPC / Codeforces Gym 101889I - Imperial roads
-- Yosupo - Dynamic Graph Vertex Add Component Sum
-- Yosupo - Dynamic Tree Subtree Add Subtree Sum
-- SPOJ DYNACON1 - Dynamic Tree Connectivity
-
-Ademas, se agrego el scrape real del grupo con:
+Se dejo solo el scrape real del grupo con los contests utiles para el final:
 
 - Semana 10 - RMQ
 - Semana 11 - Problemas de strings
 - Semana 12 - HLD
 - Semana 13 - Offline Dynamic Connectivity
-- Proyectos visibles 2, 3, 4 y 5
+- Proyecto 4 y Proyecto 5
+
+Se quitaron Proyecto 2/Efecto cascada y Proyecto 3/BST implicito por no servir para la ruta actual del final.
