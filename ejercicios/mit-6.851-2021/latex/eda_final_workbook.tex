@@ -1,0 +1,303 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\newtheorem*{claim}{Claim}
+\newcommand{\bigO}{O}
+\newcommand{\RMQ}{\operatorname{RMQ}}
+\newcommand{\LCA}{\operatorname{LCA}}
+\newcommand{\pred}{\operatorname{pred}}
+\newcommand{\succs}{\operatorname{succ}}
+\newcommand{\lcp}{\operatorname{LCP}}
+\newcommand{\SA}{\operatorname{SA}}
+
+\title{EDA Final: Ejercicios y Soluciones Propias\\
+\large Basado en MIT 6.851 Spring 2021 y slides locales}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Como usar esta hoja}
+Cada ejercicio esta pensado para responderse a papel en una pagina: idea,
+pseudocodigo, prueba corta y complejidad. Los problem sets oficiales de MIT
+estan archivados localmente en \texttt{../originales/}; aqui solo se incluyen
+referencias y soluciones propias/resumidas.
+
+\section{Integer Data Structures}
+
+\subsection*{I1. vEB: tiempo de predecessor}
+Sea un universo de tamano $u = 2^w$. Una estructura van Emde Boas divide cada
+clave $x$ como $x=\langle c,i\rangle$, donde $c$ es el cluster e $i$ la posicion
+dentro del cluster. Explica predecessor/successor y prueba el tiempo.
+
+\paragraph{Solucion.}
+Se guarda $\min$, $\max$, un \emph{summary} de clusters no vacios y una
+estructura por cluster. Para $\succs(x=\langle c,i\rangle)$:
+si $x < \min$, se responde $\min$. Si el cluster $c$ existe y
+$i < \max(cluster[c])$, se busca recursivamente dentro de ese cluster. Si no,
+se busca en \texttt{summary} el siguiente cluster no vacio $c'$ y se responde
+$\langle c', \min(cluster[c'])\rangle$. Cada llamada reduce el universo a
+$\sqrt{u}$, entonces
+\[
+T(u)=T(\sqrt{u})+\bigO(1)=\bigO(\log\log u)=\bigO(\log w).
+\]
+La misma idea funciona simetricamente para predecessor.
+
+\subsection*{I2. PS7 MIT: espacio de vEB con saving space}
+Referencia: \texttt{../originales/psets/ps7.pdf}. Estudia la version que guarda
+solo clusters no vacios. Da una cota de espacio y como llegar a espacio lineal.
+
+\paragraph{Solucion propia.}
+La version sparse elimina clusters vacios mediante hashing, pero una clave puede
+aparecer implicitamente en varios niveles por la ruta recursiva. Una cota natural
+es $\bigO(n\log\log u)$ palabras si cada elemento causa presencia en un nivel
+por escala. Para espacio lineal, se usa indireccion: partir los $n$ elementos en
+buckets de tamano $\Theta(\log u)$ o $\Theta(w)$ mantenidos por estructuras
+simples, y construir vEB/x-fast/y-fast solo sobre representantes. El numero de
+representantes baja a $\bigO(n/w)$ y cada bucket ocupa espacio proporcional a su
+tamano; la suma queda $\bigO(n)$ palabras, manteniendo busquedas con el costo
+del representante mas una busqueda local.
+
+\subsection*{I3. x-fast versus y-fast}
+Compara x-fast y y-fast para predecessor en word RAM.
+
+\paragraph{Solucion.}
+x-fast guarda todos los prefijos de cada clave en tablas hash por nivel. Para
+buscar una clave $x$, hace binary search sobre la longitud del prefijo mas largo
+presente y luego usa punteros de hojas para obtener predecessor/successor.
+Tiempo $\bigO(\log w)$, espacio $\Theta(nw)$.
+
+y-fast aplica indireccion: solo los representantes de buckets estan en un
+x-fast. Cada bucket tiene tamano esperado/amortizado $\Theta(w)$ y se guarda en
+una estructura balanceada local. Se consulta el representante en $\bigO(\log w)$
+y luego se busca dentro del bucket en $\bigO(\log w)$. El espacio total baja a
+$\bigO(n)$.
+
+\subsection*{I4. PS8 MIT: compresion de signatures}
+Referencia: \texttt{../originales/psets/ps8.pdf}. Se tienen $k=\log^\epsilon n$
+hashes de $\log n$ bits separados por ceros dentro de una palabra. Se quiere
+empaquetarlos juntos a la derecha en tiempo $\bigO(1)$ word RAM.
+
+\paragraph{Solucion propia.}
+La herramienta conceptual es una multiplicacion por una mascara constante
+precomputada que mueve cada campo a su posicion objetivo, seguida de mascaras
+para eliminar basura. Como los campos no se solapan despues del desplazamiento,
+la suma/multiplicacion paralela dentro de palabra actua como una operacion SIMD:
+cada hash $h_i$ se desplaza por una cantidad fija hasta quedar contiguo al
+siguiente. La prueba consiste en fijar una mascara con 1s en las posiciones de
+inicio de cada campo, multiplicar por un patron que copia esos campos a offsets
+controlados, y aplicar una mascara final de $k\log n$ bits. Todas las operaciones
+son de palabra, por lo que el tiempo es $\bigO(1)$.
+
+\section{Static Trees, RMQ y LCA}
+
+\subsection*{S1. RMQ a LCA con Cartesian tree}
+Dado un arreglo $A[1..n]$, construye su Cartesian tree min-heap. Prueba que
+$\RMQ_A(i,j)$ es el LCA de los nodos $i$ y $j$.
+
+\paragraph{Solucion.}
+El Cartesian tree mantiene inorder igual al orden de indices y heap property por
+valor. Para cualquier intervalo $[i,j]$, el nodo de minimo valor en ese intervalo
+es el primer nodo del intervalo que separa el inorder en izquierda/derecha; por
+tanto es ancestro de todos los indices del intervalo. En particular, es el
+ancestro comun mas bajo de $i$ y $j$. Si hubiera un ancestro comun mas bajo con
+menor profundidad dentro del intervalo, violaria la propiedad de heap o la
+separacion inorder. Entonces $\RMQ_A(i,j)=\LCA_T(i,j)$.
+
+\subsection*{S2. LCA a +-1 RMQ}
+Explica la reduccion de LCA en un arbol estatico a RMQ sobre un arreglo con
+diferencias consecutivas $\pm 1$.
+
+\paragraph{Solucion.}
+Hacer Euler tour del arbol y guardar dos arreglos: $E$, nodos visitados, y $D$,
+profundidades. Tambien guardar $first[v]$, primera aparicion de $v$ en $E$. Para
+una query $\LCA(u,v)$, sea $l=\min(first[u],first[v])$ y $r=\max(...)$. El LCA es
+el nodo $E[t]$ donde $D[t]$ es minimo en $[l,r]$. Como el Euler tour se mueve por
+una arista en cada paso, las profundidades cambian exactamente en $+1$ o $-1$.
+Asi el problema se reduce a $\pm 1$ RMQ.
+
+\subsection*{S3. PS10 MIT: succinct +-1 RMQ}
+Referencia: \texttt{../originales/psets/ps10.pdf}. Disena una estructura
+succinct para $\pm 1$ RMQ con $n+o(n)$ bits y query constante.
+
+\paragraph{Solucion propia.}
+Usar dos niveles. Primero codificar el arreglo $\pm 1$ por sus diferencias:
+un bit por paso, total $n+o(n)$ bits. Dividir en bloques pequenos de tamano
+$b=\frac12\log n$. Cada bloque tiene solo $2^{b-1}=\sqrt n$ formas posibles; se
+precomputan tablas de respuestas internas para cada forma usando
+$o(n)$ bits. Luego agrupar bloques en super-bloques y guardar minimos de bloque
+en una macroestructura RMQ sparse/succinct sobre los minimos. Una query se parte
+en: sufijo del bloque izquierdo, bloques completos intermedios, prefijo del
+bloque derecho. Los extremos se responden por microtabla; el centro por macro
+RMQ. El espacio extra es $o(n)$ y el tiempo es $\bigO(1)$.
+
+\subsection*{S4. Imperial Roads}
+Se tiene un grafo ponderado. Para cada carretera consultada, se pide el peso del
+MST si esa carretera debe estar incluida.
+
+\paragraph{Solucion.}
+Construir un MST $T$ con Kruskal y peso total $W$. Preprocesar $T$ para responder
+$maxEdge(u,v)$ en el camino entre dos nodos, usando binary lifting, HLD o LCA con
+RMQ. Para una arista $e=(u,v,w)$, al agregarla a $T$ se forma un ciclo. Para
+mantener un arbol con $e$, se debe eliminar una arista del camino $u\leadsto v$.
+La mejor eleccion es eliminar la de mayor peso. Por tanto
+\[
+ans(e)=W+w-maxEdge(u,v).
+\]
+Correctitud: por la propiedad del ciclo del MST, en cualquier ciclo, una arista
+de peso maximo puede excluirse de algun MST. Complejidad: Kruskal
+$\bigO(m\log m)$, preproceso $\bigO(n\log n)$, query $\bigO(\log n)$ con binary
+lifting o $\bigO(1)$ si se reduce a RMQ apropiadamente.
+
+\section{Strings}
+
+\subsection*{T1. Buscar un patron con suffix array}
+Dado texto fijo $S$ y patron $P$, explica como reportar ocurrencias usando
+suffix array.
+
+\paragraph{Solucion.}
+Construir $\SA$ de $S\$$. Los sufijos que empiezan con $P$ forman un intervalo
+contiguo en orden lexicografico, porque todos tienen prefijo comun $P$ y ningun
+sufijo fuera del rango puede quedar entre ellos sin compartir el mismo prefijo.
+Hacer dos binary searches: primera posicion con sufijo $\ge P$ y primera posicion
+con sufijo $>P$ en orden prefijo. El intervalo resultante contiene las posiciones
+de ocurrencia. Tiempo de construccion segun algoritmo: $\bigO(n\log n)$ con
+Manber-Myers o $\bigO(n)$ con DC3/SA-IS; query directa
+$\bigO(|P|\log n + occ)$.
+
+\subsection*{T2. Contar subcadenas distintas}
+Prueba la formula usando suffix array y LCP.
+
+\paragraph{Solucion.}
+El sufijo que empieza en $i$ aporta $n-i$ prefijos, todos subcadenas de $S$.
+Si procesamos sufijos en orden de $\SA$, el sufijo actual comparte exactamente
+$\lcp$ subcadenas-prefijo con el sufijo anterior; esas ya fueron contadas. Por
+tanto el numero de nuevas subcadenas aportadas es
+$(n-\SA[i])-\lcp[i]$. Sumando:
+\[
+\#distinct = \frac{n(n+1)}2 - \sum_i \lcp[i].
+\]
+
+\subsection*{T3. Longest common substring}
+Dados strings $A$ y $B$, encuentra la subcadena comun mas larga.
+
+\paragraph{Solucion.}
+Construir $S=A\#B\$$ con separadores que no aparecen en los strings. Construir
+$\SA$ y $LCP$. La respuesta es el maximo $LCP[i]$ tal que los sufijos
+$\SA[i-1]$ y $\SA[i]$ vienen de strings distintos. Si dos sufijos tienen un
+prefijo comun de longitud $L$, ese prefijo es una subcadena comun; el maximo
+entre pares adyacentes basta porque, en un conjunto de sufijos con prefijo comun,
+aparecen consecutivos en $\SA$.
+
+\subsection*{T4. Manber-Myers}
+Explica el algoritmo de doubling para construir suffix array.
+
+\paragraph{Solucion.}
+Mantener clases $rank_k[i]$ para subcadenas de longitud $2^k$ que empiezan en
+$i$. Inicialmente se ordena por caracter. Para pasar de $k$ a $k+1$, ordenar cada
+posicion $i$ por el par
+\[
+(rank_k[i], rank_k[i+2^k]).
+\]
+Despues de ordenar, se reasignan clases. Cada iteracion duplica la longitud
+comparada; tras $\lceil\log n\rceil$ iteraciones, las clases identifican sufijos
+completos. Con counting/radix sort sobre ranks, cada iteracion cuesta
+$\bigO(n)$ y el total es $\bigO(n\log n)$.
+
+\subsection*{T5. DC3 en una pagina}
+Da el esquema de DC3 y su recurrencia.
+
+\paragraph{Solucion.}
+Particionar posiciones por residuo modulo 3: $S_0,S_1,S_2$. Ordenar
+recursivamente sufijos en $S_1\cup S_2$ representando cada posicion por ternas
+de caracteres y convirtiendolas a ranks. Con esos ranks, ordenar $S_0$ por
+$(S[i], rank[i+1])$. Luego hacer merge lineal entre $S_0$ y $S_1\cup S_2$:
+para comparar $i\in S_0$ con $j\in S_1$, usar
+$(S[i],rank[i+1])$; para $j\in S_2$, usar
+$(S[i],S[i+1],rank[i+2])$. La recurrencia es
+$T(n)=T(2n/3)+\bigO(n)=\bigO(n)$.
+
+\section{Dynamic Graph}
+
+\subsection*{D1. HLD path query}
+Prueba que HLD produce solo $\bigO(\log n)$ cadenas en cualquier camino
+raiz-nodo y da path query.
+
+\paragraph{Solucion.}
+Una arista ligera hacia un hijo $v$ cumple $size(v)\le size(u)/2$. Cada vez que
+se baja por una arista ligera, el tamano del subarbol se reduce al menos a la
+mitad, asi que no puede ocurrir mas de $\log n$ veces en una ruta. Las aristas
+pesadas forman cadenas. Para query path $u,v$, mientras las cabezas de cadena
+sean distintas, subir la cabeza mas profunda y consultar el segmento
+$[in[head],in[node]]$. Al final ambos estan en la misma cadena y se consulta el
+segmento restante. Con segment tree, cada segmento cuesta $\bigO(\log n)$ y hay
+$\bigO(\log n)$ segmentos: total $\bigO(\log^2 n)$.
+
+\subsection*{D2. PS11 MIT: LCA con link-cut tree}
+Referencia: \texttt{../originales/psets/ps11.pdf}. Explica como responder LCA
+en $\bigO(\log n)$ usando link-cut trees.
+
+\paragraph{Solucion propia.}
+En un link-cut tree, \texttt{access(v)} expone la ruta desde la raiz representada
+hasta $v$ como preferred path. Si primero hacemos \texttt{access(v)}, la ruta
+raiz-$v$ queda marcada como la ultima ruta accedida. Luego hacemos
+\texttt{access(w)}. Durante este segundo acceso, el punto donde la busqueda
+cambia de una preferred path ya existente a la ruta hacia $w$ identifica el
+ultimo vertice comun entre raiz-$v$ y raiz-$w$, es decir, $\LCA(v,w)$. Muchas
+implementaciones devuelven precisamente el ultimo nodo tocado/reconectado por
+\texttt{access(w)} despues de \texttt{access(v)}. Como cada access cuesta
+$\bigO(\log n)$ amortizado, la query LCA tambien.
+
+\subsection*{D3. Euler-tour tree para component sum}
+Mantener un forest dinamico con pesos en vertices: \texttt{link}, \texttt{cut},
+\texttt{addVertex(v,x)} y \texttt{componentSum(v)}.
+
+\paragraph{Solucion.}
+Representar cada arbol por su Euler tour en un treap/BST implicito. Cada
+ocurrencia de vertice apunta al nodo del treap; guardar en cada treap la suma
+agregada de pesos. Para no contar un vertice multiples veces, se puede asignar
+el peso real solo a una ocurrencia canonica y peso cero a las demas. \texttt{link}
+y \texttt{cut} son secuencias de splits/merges en $\bigO(\log n)$. Para
+\texttt{componentSum(v)}, tomar cualquier ocurrencia de $v$, encontrar la raiz
+del treap y leer su suma agregada. \texttt{addVertex} actualiza la ocurrencia
+canonica y recalcula agregados en $\bigO(\log n)$.
+
+\subsection*{D4. Fully dynamic connectivity general}
+Bosqueja la estructura con niveles y Euler-tour trees.
+
+\paragraph{Solucion.}
+Mantener niveles $0,\ldots,\lfloor\log n\rfloor$. En cada nivel hay un spanning
+forest de las aristas de ese nivel o superiores, representado con Euler-tour
+trees. Las aristas tree mantienen conectividad; las non-tree son candidatas de
+reemplazo. Al borrar una arista que no es tree, solo se elimina. Al borrar una
+tree edge, el arbol se parte en dos componentes; se buscan aristas non-tree que
+reconecten ambas partes, promoviendo/demoviendo aristas por niveles para amortizar
+el costo. La intuicion del bound es que una arista solo puede bajar/subir
+$\bigO(\log n)$ niveles y cada operacion de ETT cuesta $\bigO(\log n)$, dando
+$\bigO(\log^2 n)$ amortizado para updates.
+
+\section*{Tabla final de complejidades}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Tema & Estructura & Complejidad clave \\
+\midrule
+Integer & vEB & $\bigO(\log w)$ query/update, espacio grande \\
+Integer & y-fast & $\bigO(\log w)$ amortizado, espacio $\bigO(n)$ \\
+Integer & fusion tree & $\bigO(\log_w n)$ predecessor \\
+Static trees & LCA via RMQ & $\bigO(n)$ preprocess, $\bigO(1)$ query \\
+Strings & Manber-Myers & $\bigO(n\log n)$ construccion SA \\
+Strings & DC3/SA-IS & $\bigO(n)$ construccion SA \\
+Dynamic graph & HLD & $\bigO(\log^2 n)$ path query/update \\
+Dynamic graph & link-cut & $\bigO(\log n)$ amortizado \\
+Dynamic graph & Euler-tour tree & $\bigO(\log n)$ link/cut/connectivity forest \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
