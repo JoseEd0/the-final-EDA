@@ -567,6 +567,222 @@ nodos temporales; el costo total es casi $\bigO(q\log q\log n)$ segun el costo
 de find sin compresion.
 
 \newpage
+\section{Scrape real del grupo Utec CS3014 Projects}
+
+Esta seccion corresponde a los problemas realmente visibles en el grupo privado
+de Codeforces despues de iniciar sesion. Los links son internos del grupo, por
+lo que pueden requerir estar logueado.
+
+\subsection{Semana 10 - RMQ}
+
+\paragraph{A. Static RMQ.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/694840/problem/A}.
+Es el problema canonico de Range Minimum Query estatico: se da un arreglo y
+muchas consultas $[l,r]$; se debe devolver el minimo del rango.
+
+\paragraph{Estructura recomendada.}
+Si solo se quiere resolver competitivo, sparse table es la opcion mas directa:
+preprocesamiento $\bigO(n\log n)$ y consulta $\bigO(1)$ porque el minimo es
+idempotente. Para una respuesta teorica alineada con 6.851, conviene mencionar
+la version optima: bloques macro/micro con Four Russians, espacio $\bigO(n)$ y
+consulta $\bigO(1)$.
+
+\paragraph{Correctitud.}
+En sparse table, todo intervalo $[l,r]$ se cubre con dos bloques de longitud
+$2^k$, donde $k=\lfloor\log(r-l+1)\rfloor$: uno empezando en $l$ y otro
+terminando en $r$. Como $\min$ es idempotente, no importa que los bloques se
+solapen; el minimo de ambos minimos es el minimo del intervalo completo.
+
+\subsection{Semana 11 - Problemas de strings}
+
+\paragraph{A. Suffix array y LCP array.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/A}.
+La base es construir o razonar sobre el suffix array y el arreglo LCP. En papel,
+debes dominar Manber--Myers: ordenar sufijos por pares de clases
+$(rank[i],rank[i+2^k])$ y duplicar la longitud comparada en cada iteracion.
+El LCP se obtiene conceptualmente comparando sufijos vecinos; si se quiere
+optimo, Kasai lo construye en $\bigO(n)$ usando ranks inversos.
+
+\paragraph{B. Busqueda de subcadenas.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/B}.
+Patron tipico: texto fijo $S$, consultas de patron $P$. Las ocurrencias de $P$
+son exactamente los sufijos que tienen prefijo $P$, y en el suffix array forman
+un intervalo contiguo. Se encuentran los extremos con dos busquedas binarias.
+La prueba sale del orden lexicografico: todos los strings con un mismo prefijo
+aparecen consecutivos.
+
+\paragraph{C. Contando subcadenas.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/C}.
+Este nombre suele apuntar a contar ocurrencias de patrones o contar subcadenas
+con alguna propiedad. Si la consulta es por ocurrencias, se usa el intervalo en
+suffix array y la respuesta es el tamano del intervalo. Si se pide contar
+subcadenas distintas, se reduce al problema D. La teoria base es la misma:
+orden lexicografico de sufijos y LCP como medida de solapamiento.
+
+\paragraph{D. Subcadenas diferentes.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/D}.
+La formula central es:
+\[
+\#\text{subcadenas distintas}=\frac{n(n+1)}2-\sum_i LCP[i].
+\]
+Cada sufijo aporta todos sus prefijos; al procesarlos en orden de suffix array,
+los primeros $LCP[i]$ prefijos ya aparecieron en el sufijo anterior. Por eso se
+restan.
+
+\paragraph{E. Subcadena en comun mas larga.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/E}.
+Concatenar $A\#B\$$, construir suffix array y LCP, y tomar el mayor LCP entre
+dos sufijos consecutivos que provienen de strings distintos. Si una subcadena
+comun aparece en ambos strings, entonces hay dos sufijos con ese prefijo; en el
+bloque lexicografico de ese prefijo, algun par adyacente de origen distinto
+captura una longitud al menos igual.
+
+\paragraph{F. Ordenando subcadenas.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/F}.
+Para comparar subcadenas $S[l_1,r_1]$ y $S[l_2,r_2]$, se usa LCP entre los
+sufijos $l_1$ y $l_2$. Si el LCP alcanza la longitud de una de ellas, decide la
+longitud. Si no, decide el primer caracter distinto. Para obtener LCP arbitrario
+entre sufijos, se usa RMQ sobre el arreglo LCP entre las posiciones de ambos
+sufijos en el suffix array. Asi se ordenan subcadenas por comparador
+$\bigO(1)$ despues de preprocesar SA+LCP+RMQ.
+
+\paragraph{G. Bordes.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/G}.
+Un borde de un string es un prefijo que tambien es sufijo. Teoria esperada:
+funcion prefijo de KMP, Z-function o suffix array. Con KMP, los bordes de
+$S[0..n-1]$ se obtienen siguiendo la cadena
+$\pi[n-1], \pi[\pi[n-1]-1], \ldots$. Con suffix array, tambien pueden verse como
+LCP entre el sufijo $0$ y sufijos que terminan alineados al final, pero KMP es
+mas directo.
+
+\paragraph{H. Refran.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/H}.
+Este tipo de problema suele pedir una subcadena repetida que maximice alguna
+funcion de longitud por frecuencia. La estructura natural es suffix array + LCP:
+una subcadena aparece al menos $k$ veces si existe un bloque de $k$ sufijos
+consecutivos cuyo minimo LCP interno es al menos su longitud. El maximo se busca
+con RMQ/sliding window sobre LCP o con una pila monotona sobre el histograma de
+LCP.
+
+\paragraph{I. Substring periodica.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/I}.
+Periodicidad de strings se ataca con prefijos, Z-function, LCP y el lema de
+periodos. Si una cadena de longitud $m$ tiene periodo $p$, entonces
+$S[i]=S[i+p]$ para $0\le i<m-p$. Para substrings, se necesitan LCP/LCS entre
+posiciones para extender coincidencias alrededor de un periodo candidato. Es el
+mas dificil del set: si queda poco tiempo, asegura antes A--F.
+
+\subsection{Semana 12 - HLD}
+
+\paragraph{A. Tree and Queries.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/A}.
+Resuelto en detalle antes: DSU on tree para contar colores con frecuencia al
+menos $k$ en subarboles. La idea importante es conservar el hijo pesado y
+descartar/agregar hijos ligeros.
+
+\paragraph{B. Arpa's letter-marked tree and Mehrdad's Dokhtar-kosh paths.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/B}.
+Problema conocido de arbol con letras donde se pregunta por caminos que pueden
+formar palindromos. La clave es representar la paridad de frecuencias de letras
+por una mascara de bits. Un multiconjunto de letras puede reordenarse como
+palindromo si a lo mucho un bit tiene paridad impar. En un arbol, la mascara del
+camino $u\leadsto v$ se obtiene con xor de prefijos desde la raiz. Luego se
+cuentan pares de vertices/subarboles con mascaras iguales o que difieren en un
+solo bit. DSU on tree o small-to-large permite hacerlo por subarbol.
+
+\paragraph{C. Laminar Family.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/C}.
+Una familia laminar es un conjunto de conjuntos donde dos conjuntos cualesquiera
+son disjuntos o uno contiene al otro. En arboles, los intervalos de Euler de
+subarboles tienen justamente estructura laminar: dos subarboles son disjuntos o
+uno contiene al otro. La teoria a dominar es ordenar por $\tin$ y usar
+$[\tin,\tout]$ para probar inclusion/disjuncion.
+
+\paragraph{D. Xenia and Tree.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/D}.
+Problema clasico de pintar vertices rojos y consultar distancia al rojo mas
+cercano. La solucion esperada es centroid decomposition: cada vertice guarda sus
+ancestros en el arbol de centroides. Al pintar $v$, se actualiza para cada
+centroide ancestro $c$ el mejor valor $dist(v,c)$. Al consultar $u$, se minimiza
+$best[c]+dist(u,c)$ sobre sus centroides ancestros. Cada operacion cuesta
+$\bigO(\log n)$.
+
+\paragraph{E. Beauty and The Tree.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/697527/problem/E}.
+Por el nombre y el contexto, entra en DP/probabilidad sobre arboles y subarboles.
+Para el final, lo relevante no es memorizar formula sino reconocer el patron:
+enraizar, calcular tamanos/subarboles, y usar acumulados desde hijos hacia padre
+o rerooting si la consulta depende de todos los vertices.
+
+\subsection{Semana 13 - Offline Dynamic Connectivity}
+
+\paragraph{A. Connect and Disconnect.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/A}.
+Es el problema canonico de conectividad dinamica offline. Las aristas tienen
+intervalos de vida entre su insercion y su eliminacion. Se colocan esos
+intervalos en un segment tree sobre tiempo. Un DFS del arbol temporal mantiene
+un DSU con rollback; en cada hoja se responde la consulta del tiempo exacto.
+
+\paragraph{B. Addition on Segments.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/698987/problem/B}.
+Aunque no sea de grafos, comparte el mismo patron offline: operaciones activas
+en intervalos. Si una contribucion existe en un rango de tiempo o posiciones,
+se descompone en $\bigO(\log n)$ nodos de un segment tree. Luego se procesan
+consultas manteniendo una estructura que se puede agregar/deshacer.
+
+\subsection{Proyectos visibles}
+
+\paragraph{Proyecto 5: Visitas.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/699336/problem/A}.
+Por el nombre y por estar al final del curso, conviene clasificarlo como tree
+path/subtree query. Si se parece a ``Milk Visits'', la idea central es responder
+si un camino contiene cierto color/tipo. Soluciones tipicas: LCA + prefijos por
+color, DSU offline, HLD, o componentes comprimidas por color.
+
+\paragraph{Proyecto 4: Distancia unitaria.}
+Link:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/694842/problem/A}.
+Clasificado como static tree/graph distance. Para el final, el patron util es:
+si hay distancias en arbol, preparar LCA y usar
+$dist(u,v)=depth[u]+depth[v]-2depth[\lca(u,v)]$. Si se piden distancias
+unitarias repetidas, BFS o estructuras por niveles tambien pueden aparecer.
+
+\paragraph{Proyecto 3: BST implicito.}
+Links:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/690932/problem/A}
+hasta
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/690932/problem/E}.
+No entra en los cuatro temas confirmados del final, pero conecta con treaps,
+splay trees y secuencias dinamicas. Es util como base conceptual para
+Euler-tour trees, porque ETT tambien usa BST implicitos para mantener secuencias.
+
+\paragraph{Proyecto 2: Efecto cascada.}
+Links:
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/687286/problem/A}
+hasta
+\url{https://codeforces.com/group/AmklRC8lhZ/contest/687286/problem/C}.
+No parece parte directa del rango final indicado. Se deja registrado por
+completitud del scrape.
+
+\newpage
 \section{Comparacion final de tecnicas}
 
 \begin{center}

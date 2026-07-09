@@ -13,9 +13,19 @@
 
 ## Conclusion
 
-El grupo requiere sesion de Codeforces, pertenencia al grupo, o ambos. Se necesita que el usuario inicie sesion en el navegador integrado para completar el scrape real.
+El grupo requiere sesion de Codeforces, pertenencia al grupo, o ambos.
 
-## Trabajo parcial completado
+## Scrape autenticado completado
+
+Luego de que el usuario inicio sesion en el navegador integrado, se pudo leer la pagina:
+
+- `https://codeforces.com/group/AmklRC8lhZ/contests`
+
+Se extrajeron 8 contests visibles y 27 problemas del grupo. El indice final esta en:
+
+- `indices/problemas_mapeados.md`
+
+## Trabajo completado
 
 Se armo un set inicial con los problemas ya identificados por las capturas y por busqueda publica:
 
@@ -27,4 +37,10 @@ Se armo un set inicial con los problemas ya identificados por las capturas y por
 - Yosupo - Dynamic Tree Subtree Add Subtree Sum
 - SPOJ DYNACON1 - Dynamic Tree Connectivity
 
-Este set cubre los temas confirmados: strings, static trees/RMQ/LCA, dynamic graph/tree, y tree queries.
+Ademas, se agrego el scrape real del grupo con:
+
+- Semana 10 - RMQ
+- Semana 11 - Problemas de strings
+- Semana 12 - HLD
+- Semana 13 - Offline Dynamic Connectivity
+- Proyectos visibles 2, 3, 4 y 5
