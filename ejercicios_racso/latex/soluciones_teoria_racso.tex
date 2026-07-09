@@ -561,6 +561,81 @@ las aristas pesan 1. Para el final, este problema vale como practica secundaria:
 distancia en arbol/grafo, no como tema principal.
 
 \newpage
+\section{Problemas externos utiles que si se conservan}
+
+Estos problemas no son Proyecto 2/BST ni Efecto cascada; si sirven porque
+entrenan exactamente los temas finales: RMQ/LCA, strings y dynamic graph.
+
+\subsection{Imperial roads}
+Link:
+\url{https://codeforces.com/gym/101889/problem/I}
+
+Tema: MST + LCA/RMQ. Construyes un MST con peso total $W$. Para una arista
+forzada $(u,v,w)$, al agregarla al MST aparece un ciclo formado por esa arista
+y el camino entre $u$ y $v$ en el MST. Para mantener un arbol que incluya la
+arista forzada, eliminas la arista mas pesada del camino. Respuesta:
+\[
+W+w-\operatorname{maxEdge}(u,v).
+\]
+La estructura de consulta es LCA con maximo en saltos binarios, o HLD con segment
+tree de maximos.
+
+\subsection{Fools and Roads}
+Link:
+\url{https://codeforces.com/problemset/problem/191/C}
+
+Tema: LCA + diferencia en arbol. Para cada ruta $(u,v)$:
+\[
+delta[u]++,\quad delta[v]++,\quad delta[\lca(u,v)]-=2.
+\]
+Luego haces DFS postorden. El acumulado de un hijo indica cuantas rutas pasan por
+la arista entre ese hijo y su padre. Es mejor que HLD porque todas las rutas se
+conocen offline y solo se necesita contar al final.
+
+\subsection{Frequency of String}
+Link:
+\url{https://codeforces.com/problemset/problem/963/D}
+
+Tema: strings y ventanas de ocurrencias. Para un patron $P$, si sus ocurrencias
+en el texto empiezan en:
+\[
+p_1<p_2<\cdots<p_t,
+\]
+la minima subcadena que contiene $k$ ocurrencias se obtiene con:
+\[
+\min_i \bigl(p_{i+k-1}-p_i+|P|\bigr).
+\]
+El reto es obtener las listas de ocurrencias de muchos patrones. Las herramientas
+naturales son Aho-Corasick para muchos patrones, o suffix array si se razona por
+intervalos lexicograficos.
+
+\subsection{Yosupo - Dynamic Graph Vertex Add Component Sum}
+Link:
+\url{https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum}
+
+Tema: dynamic connectivity offline con suma de componente. Cada arista tiene
+intervalos de vida. Se usa segment tree sobre tiempo y DSU rollback. El DSU
+guarda tambien suma de pesos por componente. En cada hoja temporal, la estructura
+representa exactamente el grafo activo en ese momento.
+
+\subsection{Yosupo - Dynamic Tree Subtree Add Subtree Sum}
+Link:
+\url{https://judge.yosupo.jp/problem/dynamic_tree_subtree_add_subtree_sum}
+
+Tema: Euler-tour trees. Un arbol dinamico se representa como una secuencia Euler
+guardada en un BST balanceado. Link y cut son operaciones de split/merge. Sumar
+en subarbol y consultar suma de subarbol son operaciones de intervalo con lazy
+propagation.
+
+\subsection{SPOJ - Dynamic Tree Connectivity}
+Link:
+\url{https://www.spoj.com/problems/DYNACON1/}
+
+Tema: conectividad dinamica en bosques. Online se resuelve con Link-Cut Trees o
+Euler-Tour Trees. Offline se puede resolver con segment tree sobre tiempo y DSU
+rollback. Es buen puente entre dynamic tree y dynamic graph.
+
+\newpage
 \section{Resumen final: que estudiar y que ignorar}
 
 \subsection*{Estudia}
@@ -571,6 +646,8 @@ bordes y periodicidad.
 \item DSU on tree, Euler tour, LCA, mascaras xor en arboles.
 \item Centroid decomposition para Xenia and Tree a nivel de idea.
 \item Offline dynamic connectivity con segment tree sobre tiempo y DSU rollback.
+\item Imperial roads, Fools and Roads, Frequency of String, Yosupo dynamic
+graph/tree y SPOJ Dynamic Tree Connectivity.
 \item Proyecto 5 y Proyecto 4 solo como integracion de arboles/distancias.
 \end{itemize}
 
@@ -578,8 +655,9 @@ bordes y periodicidad.
 \begin{itemize}[leftmargin=*]
 \item Proyecto 3 - BST implicito.
 \item Proyecto 2 - Efecto cascada.
-\item Cualquier problema externo que no este en esta lista, salvo que el profesor
-lo mencione directamente.
+\item Cualquier otro problema externo que no sea Imperial, Fools and Roads,
+Frequency of String, Yosupo dynamic graph/tree o SPOJ Dynamic Tree Connectivity,
+salvo que el profesor lo mencione directamente.
 \end{itemize}
 
 \section*{Checklist para resolver en papel}

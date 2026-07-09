@@ -5,8 +5,9 @@ Grupo:
 - https://codeforces.com/group/AmklRC8lhZ
 - https://codeforces.com/group/AmklRC8lhZ/contests
 
-Este indice esta filtrado: solo conserva los contests de la captura y elimina
-Proyecto 3/BST implicito y Proyecto 2/Efecto cascada.
+Este indice esta filtrado: conserva los contests utiles del grupo, restaura los
+problemas externos utiles, y elimina solo Proyecto 3/BST implicito y Proyecto
+2/Efecto cascada.
 
 ## Contests utiles
 
@@ -43,6 +44,17 @@ Proyecto 3/BST implicito y Proyecto 2/Efecto cascada.
 | Proyecto final / tree visits | 699336 | A | Visitas | https://codeforces.com/group/AmklRC8lhZ/contest/699336/problem/A | Alta |
 | Distancias | 694842 | A | Distancia unitaria | https://codeforces.com/group/AmklRC8lhZ/contest/694842/problem/A | Media |
 
+## Problemas externos utiles
+
+| Tema | Problema | Link exacto | Prioridad |
+|---|---|---|---|
+| MST + LCA/RMQ | Imperial roads | https://codeforces.com/gym/101889/problem/I | Maxima |
+| LCA / diferencia en arbol | Fools and Roads | https://codeforces.com/problemset/problem/191/C | Alta |
+| Strings / ventanas de ocurrencias | Frequency of String | https://codeforces.com/problemset/problem/963/D | Maxima |
+| Offline dynamic connectivity + component sum | Yosupo - Dynamic Graph Vertex Add Component Sum | https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum | Alta |
+| Euler-tour tree / dynamic subtree aggregate | Yosupo - Dynamic Tree Subtree Add Subtree Sum | https://judge.yosupo.jp/problem/dynamic_tree_subtree_add_subtree_sum | Alta |
+| Dynamic tree connectivity | SPOJ Dynamic Tree Connectivity | https://www.spoj.com/problems/DYNACON1/ | Alta |
+
 ## Orden recomendado si no sabes nada
 
 1. `694840/A Static RMQ`
@@ -52,9 +64,12 @@ Proyecto 3/BST implicito y Proyecto 2/Efecto cascada.
 5. `695758/E Subcadena en comun mas larga`
 6. `697527/A Tree and Queries`
 7. `698987/A Connect and Disconnect`
-8. `695758/F-G-H-I` strings avanzados
-9. `697527/B-C-D-E` arboles avanzados
-10. `699336/A Visitas` y `694842/A Distancia unitaria`
+8. `Imperial roads` y `Fools and Roads`
+9. `Frequency of String`
+10. `Yosupo/SPOJ` dynamic graph/tree
+11. `695758/F-G-H-I` strings avanzados
+12. `697527/B-C-D-E` arboles avanzados
+13. `699336/A Visitas` y `694842/A Distancia unitaria`
 
 ## Quitados a proposito
 
@@ -62,4 +77,4 @@ No estudiar para esta ruta:
 
 - Proyecto 3 - BST implicito.
 - Proyecto 2 - Efecto cascada.
-- Problemas externos fuera de este grupo, salvo que el profesor los mencione directamente.
+No quitar: Imperial, Fools and Roads, Frequency of String, Yosupo ni SPOJ, porque si sirven para los temas finales.

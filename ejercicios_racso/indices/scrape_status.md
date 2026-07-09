@@ -36,7 +36,7 @@ El indice final esta en:
 
 ## Trabajo completado
 
-Se dejo solo el scrape real del grupo con los contests utiles para el final:
+Se dejo el scrape real del grupo con los contests utiles para el final:
 
 - Semana 10 - RMQ
 - Semana 11 - Problemas de strings
@@ -44,4 +44,12 @@ Se dejo solo el scrape real del grupo con los contests utiles para el final:
 - Semana 13 - Offline Dynamic Connectivity
 - Proyecto 4 y Proyecto 5
 
-Se quitaron Proyecto 2/Efecto cascada y Proyecto 3/BST implicito por no servir para la ruta actual del final.
+Tambien se conservaron problemas externos utiles:
+
+- Imperial roads
+- Fools and Roads
+- Frequency of String
+- Yosupo dynamic graph/tree
+- SPOJ Dynamic Tree Connectivity
+
+Se quitaron solamente Proyecto 2/Efecto cascada y Proyecto 3/BST implicito por no servir para la ruta actual del final.
