@@ -1,0 +1,1032 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{microtype}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  breaklines=true,
+  showstringspaces=false
+}
+
+\newcommand{\bigO}{O}
+\newcommand{\SA}{\operatorname{SA}}
+\newcommand{\LCP}{\operatorname{LCP}}
+\newcommand{\rankv}{\operatorname{rank}}
+\newcommand{\lca}{\operatorname{lca}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\RMQ}{\operatorname{RMQ}}
+\newcommand{\pref}{\operatorname{pref}}
+\newcommand{\zfunc}{\operatorname{Z}}
+
+\title{Problemas Racso de Static Trees y Strings\\
+\large Enunciados interpretados, teoria aplicada, soluciones de examen y pseudocodigo}
+\author{}
+\date{}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\section*{Como leer este PDF}
+Este documento toma los problemas de \texttt{soluciones\_teoria\_racso.pdf} que
+corresponden a la carpeta \texttt{statics and strings/}: RMQ, LCA/static trees y
+strings. No copia literalmente los enunciados de los jueces: cada problema tiene
+un \textbf{enunciado interpretado en espanol}, suficiente para estudiar y
+responder en papel sin depender de memorizar texto.
+
+El objetivo es que aprendas teoria mediante problemas. En cada seccion veras:
+\begin{itemize}[leftmargin=*]
+\item como interpretar el enunciado;
+\item que teoria debes activar;
+\item que estructura usar y por que;
+\item algoritmo paso a paso;
+\item pseudocodigo corto estilo C++;
+\item correctitud;
+\item complejidad;
+\item trampas de examen.
+\end{itemize}
+
+\subsection*{Problemas incluidos}
+\begin{center}
+\begin{tabular}{p{0.33\linewidth}p{0.45\linewidth}p{0.14\linewidth}}
+\toprule
+Tema & Problemas & Prioridad \\
+\midrule
+RMQ/static array & Static RMQ & Maxima \\
+Strings base & Suffix array y LCP, busqueda, conteo & Maxima \\
+Strings clasicos & distintas, LCS, ordenar substrings, bordes & Maxima/alta \\
+Strings avanzados & Refran, substring periodica, Frequency of String & Alta \\
+Static trees/LCA & Imperial Roads, Fools and Roads & Maxima/alta \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\tableofcontents
+\newpage
+
+\section{Base teorica comun: lo minimo que debes tener en la cabeza}
+
+\subsection{Static significa que puedes preprocesar}
+Si el arreglo, arbol o string no cambia, puedes gastar tiempo antes de las
+consultas. Eso se llama preprocesamiento. En problemas de examen, la frase
+``muchas consultas'' casi siempre significa:
+\begin{quote}
+No resuelvas cada consulta desde cero; construye una estructura.
+\end{quote}
+
+Ejemplos:
+\begin{itemize}[leftmargin=*]
+\item RMQ estatico: sparse table.
+\item LCA en arbol fijo: binary lifting o Euler tour + RMQ.
+\item Texto fijo con muchos patrones: suffix array o Aho-Corasick.
+\item Comparar substrings muchas veces: suffix array + LCP + RMQ.
+\end{itemize}
+
+\subsection{RMQ}
+RMQ significa Range Minimum Query. Dado un arreglo fijo $A$, una consulta
+$\RMQ(l,r)$ pide el minimo valor o la posicion del minimo en $A[l..r]$.
+
+La estructura mas directa es sparse table:
+\[
+st[k][i]=\min(A[i],A[i+1],\ldots,A[i+2^k-1]).
+\]
+Para consultar $[l,r]$, tomas $k=\lfloor\log_2(r-l+1)\rfloor$ y combinas:
+\[
+\min(st[k][l],st[k][r-2^k+1]).
+\]
+Funciona porque los dos bloques cubren el rango y el minimo es idempotente:
+$\min(x,x)=x$.
+
+\subsection{LCA}
+El Lowest Common Ancestor de $u$ y $v$ es el ancestro comun mas profundo. Sirve
+para rutas en arbol:
+\[
+\dist(u,v)=depth[u]+depth[v]-2depth[\lca(u,v)].
+\]
+Si ademas guardas maximos/minimos en saltos de binary lifting, puedes responder
+max edge on path o min edge on path.
+
+\subsection{Suffix array, rank y LCP}
+El suffix array de $S$ ordena todos los sufijos:
+\[
+S[\SA[0]..] < S[\SA[1]..] < \cdots < S[\SA[n-1]..].
+\]
+El rank inverso dice en que posicion aparece cada sufijo:
+\[
+\SA[\rankv[i]]=i.
+\]
+El LCP array guarda:
+\[
+\LCP[i]=lcp(S[\SA[i-1]..],S[\SA[i]..]).
+\]
+Si dos sufijos estan en posiciones $a<b$ del suffix array:
+\[
+lcp(i,j)=\min(\LCP[a+1],\ldots,\LCP[b]).
+\]
+Por eso se preprocesa RMQ sobre LCP para comparar substrings en $\bigO(1)$.
+
+\subsection{Como clasificar rapido}
+\begin{center}
+\begin{tabular}{p{0.37\linewidth}p{0.42\linewidth}}
+\toprule
+Frase del problema & Estructura que debes pensar \\
+\midrule
+minimo en rango, sin updates & sparse table / RMQ \\
+camino en arbol, distancia, max edge & LCA / binary lifting augmentado \\
+muchos caminos y contar aristas usadas & LCA + diferencia en arbol \\
+buscar patron en texto fijo & suffix array, intervalo de sufijos \\
+subcadenas distintas & total menos suma de LCP \\
+subcadena comun mas larga & SA de $A\#B$ + LCP \\
+comparar/ordenar substrings & rank + LCP arbitrario + RMQ \\
+borde, prefijo=sufijo & KMP prefix function o Z-function \\
+periodicidad & KMP/Z o igualdad por LCP \\
+muchos patrones en un texto & Aho-Corasick o suffix array segun enfoque \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+\section{Static RMQ}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/694840/problem/A}
+
+\subsection{Enunciado interpretado}
+Se te da un arreglo fijo de $n$ enteros. Luego llegan muchas consultas
+$(l,r)$. Para cada una debes responder el minimo del subarreglo desde $l$ hasta
+$r$. El arreglo no recibe updates.
+
+\subsection{Como interpretarlo en examen}
+La palabra clave es \textbf{static}. Eso descarta segment tree como primera
+opcion si solo hay minimos y no hay updates. Lo correcto es decir: preproceso
+bloques de potencias de dos con sparse table y respondo cada rango usando dos
+bloques solapados.
+
+\subsection{Teoria necesaria}
+Sparse table guarda respuestas para rangos canonicos. Canonico significa: rango
+que empieza en alguna posicion $i$ y tiene longitud $2^k$. La razon de elegir
+potencias de dos es que cualquier longitud contiene una potencia de dos maxima.
+
+Para $[l,r]$, si $2^k\le r-l+1$, entonces:
+\[
+[l,l+2^k-1]\quad\text{y}\quad[r-2^k+1,r]
+\]
+cubren todo el intervalo. Se pueden solapar. Para minimo eso no afecta, porque
+repetir elementos no cambia la respuesta.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Precalcula $lg[len]=\lfloor\log_2 len\rfloor$.
+\item Inicializa $st[0][i]=A[i]$.
+\item Para cada $k>0$, calcula:
+\[
+st[k][i]=\min(st[k-1][i],st[k-1][i+2^{k-1}]).
+\]
+\item Para query $(l,r)$:
+\[
+k=lg[r-l+1],
+\]
+\[
+ans=\min(st[k][l],st[k][r-2^k+1]).
+\]
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+build(A):
+  lg[1] = 0
+  for i = 2..n: lg[i] = lg[i/2] + 1
+  for i = 0..n-1: st[0][i] = A[i]
+  for k = 1..lg[n]:
+    for i = 0; i + (1<<k) <= n; i++:
+      st[k][i] = min(st[k-1][i],
+                     st[k-1][i + (1<<(k-1))])
+
+query(l, r):
+  k = lg[r-l+1]
+  return min(st[k][l], st[k][r-(1<<k)+1])
+\end{lstlisting}
+
+\subsection{Correctitud}
+El preprocesamiento es correcto por induccion en $k$. Para $k=0$, cada bloque
+tiene un solo elemento. Para $k>0$, un bloque de longitud $2^k$ es la union de
+dos bloques de longitud $2^{k-1}$, por lo que tomar el minimo de sus respuestas
+da el minimo del bloque grande.
+
+En la consulta, los dos bloques elegidos cubren $[l,r]$. Todo elemento del rango
+esta en al menos uno de ellos, asi que el minimo global esta considerado. Si un
+elemento esta en ambos, no afecta por idempotencia del minimo. Por tanto la
+respuesta es exactamente el minimo del rango.
+
+\subsection{Complejidad y trampas}
+Preprocesamiento $\bigO(n\log n)$, memoria $\bigO(n\log n)$, query $\bigO(1)$.
+Trampa: sparse table sirve para min, max y gcd; no sirve asi para suma porque
+dos bloques solapados contarian dos veces.
+
+\newpage
+\section{Suffix array y LCP array}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/A}
+
+\subsection{Enunciado interpretado}
+Se te da una cadena $S$. Debes construir o razonar sobre su suffix array y su
+LCP array. Este problema es el fundamento de casi todos los demas de strings.
+
+\subsection{Como interpretarlo en examen}
+Si te piden suffix array, no pienses en comparar todos los sufijos con
+comparacion lenta. Debes explicar una construccion: Manber-Myers si quieres una
+respuesta simple, o DC3/SA-IS si piden linealidad. Para el examen, Manber-Myers
+es la ruta mas defendible.
+
+\subsection{Teoria necesaria}
+Un sufijo es $S[i..n-1]$. El suffix array es una permutacion de posiciones. No
+guarda strings; guarda indices. Si $S=\texttt{banana\$}$, el suffix array
+ordenado es:
+\[
+\SA=[6,5,3,1,0,4,2].
+\]
+El LCP entre sufijos vecinos mide cuanto comparten al inicio. En
+\texttt{banana\$}, \texttt{ana\$} y \texttt{anana\$} tienen LCP $3$.
+
+\subsection{Algoritmo}
+Manber-Myers ordena por prefijos de longitud $1,2,4,8,\ldots$.
+\begin{enumerate}[leftmargin=*]
+\item Ordena posiciones por caracter y asigna ranks iniciales.
+\item En cada ronda de longitud $len$, representa el sufijo que empieza en $i$
+por el par:
+\[
+(rank[i],rank[i+len]).
+\]
+\item Ordena esos pares.
+\item Reasigna ranks: pares iguales reciben el mismo rank, pares distintos
+ranks crecientes.
+\item Duplica $len$ hasta cubrir toda la cadena.
+\item Construye LCP con Kasai usando rank inverso.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+build_suffix_array(S):
+  n = S.size()
+  sa = [0,1,...,n-1]
+  rank[i] = S[i]
+  for len = 1; len < n; len *= 2:
+    sort sa by (rank[i], rank[i+len] or -1)
+    newRank[sa[0]] = 0
+    for t = 1..n-1:
+      newRank[sa[t]] = newRank[sa[t-1]]
+      if pair(sa[t]) != pair(sa[t-1]):
+        newRank[sa[t]]++
+    rank = newRank
+  return sa
+
+build_lcp(S, sa):
+  rank[sa[i]] = i
+  h = 0
+  for i = 0..n-1:
+    if rank[i] == 0: continue
+    j = sa[rank[i]-1]
+    while S[i+h] == S[j+h]: h++
+    lcp[rank[i]] = h
+    if h > 0: h--
+\end{lstlisting}
+
+\subsection{Correctitud}
+La induccion es la parte importante. Al inicio, $rank[i]$ ordena prefijos de
+longitud $1$. Si en una ronda $rank$ ordena prefijos de longitud $len$, entonces
+el par $(rank[i],rank[i+len])$ ordena prefijos de longitud $2len$: primero mira
+la mitad izquierda y si empata mira la mitad derecha. Al duplicar hasta
+$len\ge n$, ordenar prefijos equivale a ordenar sufijos completos.
+
+Kasai es correcto porque al pasar de sufijo $i$ a sufijo $i+1$, el LCP con su
+vecino lexicografico disminuye como mucho en uno; por eso reutiliza $h$ y suma
+tiempo lineal total.
+
+\subsection{Complejidad y trampas}
+Manber-Myers con sort general cuesta $\bigO(n\log^2 n)$; con counting/radix sort
+por ranks cuesta $\bigO(n\log n)$. Kasai cuesta $\bigO(n)$. Trampa de examen:
+no confundas $\SA$ con $rank$; $\SA[pos]$ da indice del sufijo, $rank[i]$ da
+posicion del sufijo $i$ en el orden.
+
+\newpage
+\section{Busqueda de subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/B}
+
+\subsection{Enunciado interpretado}
+Tienes un texto fijo $S$ y consultas con patrones $P$. Para cada patron debes
+decir si aparece, cuantas veces aparece o donde aparece.
+
+\subsection{Como interpretarlo en examen}
+Texto fijo + muchos patrones significa: preprocesa el texto. Con suffix array,
+un patron aparece exactamente en los sufijos que empiezan con ese patron. Esos
+sufijos forman un intervalo continuo en el suffix array.
+
+\subsection{Teoria necesaria}
+El orden lexicografico agrupa strings con el mismo prefijo. Si varios sufijos
+empiezan con $P$, todos quedan juntos. Por eso el problema se transforma en
+encontrar el primer y ultimo sufijo cuyo prefijo de longitud $|P|$ coincide con
+$P$.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Construye $\SA$ de $S$.
+\item Para cada patron $P$, haz dos binary searches:
+\begin{itemize}
+\item lower bound: primer sufijo $\ge P$ lexicograficamente.
+\item upper bound: primer sufijo que ya no tiene prefijo $P$.
+\end{itemize}
+\item Si el intervalo $[L,R)$ esta vacio, no aparece.
+\item Si no, aparece $R-L$ veces y sus posiciones son $\SA[L],\ldots,\SA[R-1]$.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+cmp_suffix_pattern(pos, P):
+  // compara S[pos..] con P hasta |P|
+  for i = 0..P.size()-1:
+    if pos+i == n: return -1
+    if S[pos+i] < P[i]: return -1
+    if S[pos+i] > P[i]: return 1
+  return 0  // P es prefijo del sufijo
+
+find_interval(P):
+  L = lower_bound_suffix_geq(P)
+  R = first_suffix_greater_than_prefix(P)
+  return [L, R)
+\end{lstlisting}
+
+\subsection{Correctitud}
+Si $P$ aparece en posicion $i$, entonces el sufijo $S[i..]$ empieza con $P$.
+Todos los sufijos que empiezan con $P$ tienen el mismo prefijo, asi que en orden
+lexicografico forman un bloque. Las busquedas binarias encuentran los limites de
+ese bloque. Por tanto el intervalo contiene exactamente todas las ocurrencias.
+
+\subsection{Complejidad y trampas}
+Construccion $\bigO(n\log n)$. Query simple $\bigO(|P|\log n)$. Trampa: si
+quieres listar posiciones ordenadas por indice en el texto, el intervalo del
+suffix array no necesariamente esta ordenado por posicion; debes ordenar esas
+posiciones o usar otra estructura.
+
+\newpage
+\section{Contando subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/C}
+
+\subsection{Enunciado interpretado}
+El problema entrena conteos con subcadenas. Segun variante, puede pedir contar
+ocurrencias de patrones o contar subcadenas que cumplen alguna condicion. La
+idea base es que toda subcadena es prefijo de algun sufijo.
+
+\subsection{Como interpretarlo en examen}
+Pregunta primero: ``me piden contar ocurrencias de un patron'' o ``me piden
+contar subcadenas distintas''. Si es patron, usa intervalo en suffix array. Si
+es distintas, usa suma de LCP.
+
+\subsection{Teoria necesaria}
+Para ocurrencias de $P$, cuenta cuantos sufijos empiezan con $P$. Para
+subcadenas distintas, usa que el sufijo $S[\SA[i]..]$ aporta todos sus prefijos,
+salvo los que comparte con el sufijo anterior.
+
+\subsection{Algoritmo para ocurrencias}
+\begin{enumerate}[leftmargin=*]
+\item Construye $\SA$.
+\item Encuentra intervalo de sufijos que tienen prefijo $P$.
+\item La respuesta es el tamano del intervalo.
+\end{enumerate}
+
+\subsection{Algoritmo para distintas}
+\[
+total=\frac{n(n+1)}2,\qquad distinct=total-\sum_i \LCP[i].
+\]
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+count_occurrences(P):
+  [L, R) = find_interval(P)
+  return R - L
+
+count_distinct_substrings():
+  ans = n * (n + 1) / 2
+  for i = 1..n-1:
+    ans -= lcp[i]
+  return ans
+\end{lstlisting}
+
+\subsection{Correctitud}
+Para ocurrencias, cada aparicion de $P$ corresponde a un sufijo que empieza con
+$P$, y viceversa. Para distintas, cada subcadena se cuenta como prefijo de un
+sufijo. En orden lexicografico, los prefijos ya vistos por el sufijo actual son
+exactamente los que comparte con el sufijo anterior, medidos por LCP. Restarlos
+evita duplicados.
+
+\subsection{Complejidad y trampas}
+Con $\SA+\LCP$, el conteo de distintas es $\bigO(n)$. Las consultas de patrones
+son $\bigO(|P|\log n)$ en version simple. Trampa: $\sum LCP$ no cuenta
+ocurrencias; cuenta prefijos duplicados entre sufijos vecinos.
+
+\newpage
+\section{Subcadenas diferentes}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/D}
+
+\subsection{Enunciado interpretado}
+Dada una cadena $S$, calcula cuantas subcadenas distintas tiene. Dos subcadenas
+son iguales si tienen la misma secuencia de caracteres, aunque aparezcan en
+posiciones distintas.
+
+\subsection{Como interpretarlo en examen}
+Esta es una pregunta casi directa de suffix array + LCP. Si ves ``distintas'',
+piensa en:
+\[
+\frac{n(n+1)}2-\sum LCP.
+\]
+
+\subsection{Teoria necesaria}
+Hay $n(n+1)/2$ subcadenas contando repetidas. Al procesar sufijos en orden de
+$\SA$, el sufijo actual tiene $n-\SA[i]$ prefijos. Sus primeros $\LCP[i]$
+prefijos ya aparecieron antes, porque los comparte con el sufijo anterior.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Construye suffix array.
+\item Construye LCP array.
+\item Inicializa $ans=n(n+1)/2$.
+\item Resta cada valor de LCP.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+distinct_substrings(S):
+  sa = build_sa(S)
+  lcp = build_lcp(S, sa)
+  ans = 1LL * n * (n + 1) / 2
+  for i = 1..n-1:
+    ans -= lcp[i]
+  return ans
+\end{lstlisting}
+
+\subsection{Correctitud}
+Cada subcadena de $S$ es prefijo de algun sufijo. En orden lexicografico, cuando
+llegas a un sufijo, todos sus prefijos son candidatos a subcadenas nuevas. Pero
+los prefijos de longitud hasta $\LCP[i]$ ya fueron vistos en el sufijo anterior;
+los prefijos mas largos son nuevos. Por tanto el sufijo aporta
+$(n-\SA[i])-\LCP[i]$ subcadenas nuevas. La suma equivale al total menos
+$\sum LCP$.
+
+\subsection{Complejidad y trampas}
+Construccion $\bigO(n\log n)$ con Manber-Myers, o $\bigO(n)$ con SA-IS/DC3.
+Conteo final $\bigO(n)$. Trampa: si la cadena incluye sentinela en la
+construccion, no debes contar subcadenas que contengan el sentinela.
+
+\newpage
+\section{Subcadena en comun mas larga}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/E}
+
+\subsection{Enunciado interpretado}
+Dadas dos cadenas $A$ y $B$, encuentra la mayor longitud de una subcadena que
+aparece en ambas, o la subcadena misma.
+
+\subsection{Como interpretarlo en examen}
+Dos strings + subcadena comun = concatena con separadores y usa suffix array.
+No uses LCS de subsecuencia; aqui es substring, debe ser contigua.
+
+\subsection{Teoria necesaria}
+Si una subcadena $X$ aparece en ambas cadenas, entonces existe un sufijo de $A$
+y un sufijo de $B$ que tienen $X$ como prefijo comun. En el suffix array de
+$A\#B\$$, los sufijos con prefijo comun largo quedan juntos. Por eso basta mirar
+LCP entre vecinos de origen distinto.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Construye $T=A\#B\$$ con separadores que no aparecen en las cadenas.
+\item Construye $\SA$ y $\LCP$ de $T$.
+\item Define una funcion $origin(pos)$ que diga si el sufijo empieza en $A$, en
+$B$ o en separador.
+\item Recorre $i=1..|T|-1$.
+\item Si $\SA[i-1]$ y $\SA[i]$ vienen de cadenas distintas, actualiza con
+$\LCP[i]$.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+longest_common_substring(A, B):
+  T = A + "#" + B + "$"
+  sa = build_sa(T)
+  lcp = build_lcp(T, sa)
+  best = 0; bestPos = -1
+  for i = 1..T.size()-1:
+    if origin(sa[i-1]) != origin(sa[i]):
+      if lcp[i] > best:
+        best = lcp[i]
+        bestPos = sa[i]
+  return best
+\end{lstlisting}
+
+\subsection{Correctitud}
+Sea $X$ una subcadena comun optima. Entonces hay al menos un sufijo de $A$ y uno
+de $B$ que empiezan con $X$. Todos los sufijos con prefijo $X$ forman un bloque
+en $\SA$. Dentro de ese bloque debe existir un par adyacente de origen distinto,
+porque hay sufijos de ambas cadenas. El LCP de ese par es al menos $|X|$. Por
+tanto el maximo LCP entre vecinos de origen distinto recupera la respuesta
+optima.
+
+\subsection{Complejidad y trampas}
+$\bigO(n\log n)$ o $\bigO(n)$ segun construccion de SA. Trampa: usa separadores
+distintos y menores/no presentes; si no, puedes contar substrings que cruzan de
+$A$ a $B$ artificialmente.
+
+\newpage
+\section{Ordenando subcadenas}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/F}
+
+\subsection{Enunciado interpretado}
+Se te da un texto $S$ y una lista de subcadenas representadas por pares
+$(l,r)$. Debes compararlas, ordenarlas lexicograficamente o responder cual es
+menor.
+
+\subsection{Como interpretarlo en examen}
+Comparar substrings directamente cuesta su longitud. Si hay muchas
+comparaciones, necesitas LCP arbitrario entre sufijos. La estructura es:
+\[
+\SA + rank + LCP + RMQ.
+\]
+
+\subsection{Teoria necesaria}
+Para comparar $S[l_1..r_1]$ y $S[l_2..r_2]$, primero calcula cuanto prefijo
+comparten:
+\[
+x=lcp(l_1,l_2).
+\]
+Si $x$ alcanza la longitud menor, una substring es prefijo de la otra y gana la
+mas corta. Si no, el primer caracter distinto esta en $l_1+x$ y $l_2+x$.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Construye $\SA$ y $rank$.
+\item Construye $\LCP$.
+\item Preprocesa sparse table sobre $\LCP$.
+\item Para comparar dos substrings, usa RMQ sobre LCP para obtener LCP de los
+dos sufijos.
+\item Decide por longitud o por el primer caracter diferente.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+lcp_suffix(i, j):
+  if i == j: return n - i
+  a = rank[i]; b = rank[j]
+  if a > b: swap(a, b)
+  return rmq_lcp(a+1, b)
+
+less_substring(l1, r1, l2, r2):
+  len1 = r1-l1+1
+  len2 = r2-l2+1
+  x = min(lcp_suffix(l1,l2), min(len1,len2))
+  if x == min(len1,len2):
+    return len1 < len2
+  return S[l1+x] < S[l2+x]
+\end{lstlisting}
+
+\subsection{Correctitud}
+El LCP de los sufijos desde $l_1$ y $l_2$ da la longitud del prefijo comun de
+las dos substrings, salvo que una termine antes. Si el prefijo comun cubre la
+substring mas corta, entonces la mas corta es menor si las longitudes difieren.
+Si no cubre, el primer caracter distinto decide exactamente el orden
+lexicografico.
+
+\subsection{Complejidad y trampas}
+Preprocesamiento $\bigO(n\log n)$ por SA y RMQ. Cada comparacion $\bigO(1)$.
+Ordenar $q$ substrings cuesta $\bigO(q\log q)$. Trampa: el LCP de sufijos puede
+ser mas largo que la substring; siempre recortalo con las longitudes.
+
+\newpage
+\section{Bordes}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/G}
+
+\subsection{Enunciado interpretado}
+Dada una cadena, encuentra sus bordes o razona con prefijos que tambien son
+sufijos. Un borde propio no puede ser la cadena completa.
+
+\subsection{Como interpretarlo en examen}
+Prefijo = sufijo es KMP/Z-function. Si el problema pide todos los bordes,
+piensa en la cadena de prefix function:
+\[
+k=\pi[n-1],\quad k=\pi[k-1],\ldots
+\]
+
+\subsection{Teoria necesaria}
+La prefix function $\pi[i]$ es la longitud del mayor borde de $S[0..i]$. Si
+$\pi[n-1]=k$, entonces $S[0..k-1]$ es el mayor borde de $S$. Los bordes mas
+pequenos son bordes de ese borde.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Calcula $\pi$ de KMP.
+\item Empieza con $k=\pi[n-1]$.
+\item Mientras $k>0$, registra $k$ y actualiza $k=\pi[k-1]$.
+\item Invierte la lista si se pide de menor a mayor.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+prefix_function(S):
+  pi[0] = 0
+  for i = 1..n-1:
+    j = pi[i-1]
+    while j > 0 && S[i] != S[j]:
+      j = pi[j-1]
+    if S[i] == S[j]: j++
+    pi[i] = j
+
+borders(S):
+  pi = prefix_function(S)
+  k = pi[n-1]
+  while k > 0:
+    answer.push_back(k)
+    k = pi[k-1]
+\end{lstlisting}
+
+\subsection{Correctitud}
+Por definicion, $\pi[n-1]$ es el mayor borde de toda la cadena. Cualquier borde
+menor de $S$ tambien debe ser borde del mayor borde: si coincide como prefijo y
+sufijo de $S$, queda alineado dentro de ese prefijo/sufijo mayor. Por eso seguir
+$\pi[k-1]$ enumera todos los bordes.
+
+\subsection{Complejidad y trampas}
+$\bigO(n)$. Trampa: revisa si el problema considera la cadena completa como
+borde. Muchos problemas solo piden bordes propios.
+
+\newpage
+\section{Refran}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/H}
+
+\subsection{Enunciado interpretado}
+El problema trata de subcadenas repetidas. Una forma comun es buscar una
+subcadena que aparece varias veces y maximiza una funcion como
+$longitud \times frecuencia$, o encontrar la repeticion mas significativa.
+
+\subsection{Como interpretarlo en examen}
+Subcadena repetida = varios sufijos con prefijo comun. Varios sufijos con
+prefijo comun = intervalo en suffix array. Longitud comun de un intervalo =
+minimo LCP dentro del intervalo.
+
+\subsection{Teoria necesaria}
+Si tienes $t$ sufijos consecutivos en $\SA$, la longitud maxima que comparten
+todos es:
+\[
+\min(\LCP[L+1],\ldots,\LCP[R]).
+\]
+Si esa longitud es $h$, entonces existe una subcadena de longitud $h$ que
+aparece al menos $t=R-L+1$ veces.
+
+\subsection{Algoritmo}
+Interpreta el arreglo LCP como histograma:
+\begin{itemize}[leftmargin=*]
+\item una barra de altura $h$ representa que dos sufijos vecinos comparten $h$;
+\item un intervalo donde todas las barras son al menos $h$ representa muchos
+sufijos compartiendo un prefijo de longitud $h$;
+\item si el intervalo tiene $w$ barras, hay $w+1$ sufijos.
+\end{itemize}
+Con una pila monotona encuentras para cada LCP el intervalo maximal donde es el
+minimo. Evalua la funcion del problema.
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+best_repeated():
+  sa = build_sa(S)
+  lcp = build_lcp(S, sa)
+  stack = empty
+  best = 0
+  for i = 1..n: // usa lcp[n]=0 como centinela
+    start = i
+    while stack not empty && stack.top.height > lcp[i]:
+      (h, pos) = stack.pop()
+      width = i - pos
+      freq = width + 1
+      best = max(best, h * freq)
+      start = pos
+    push (lcp[i], start)
+\end{lstlisting}
+
+\subsection{Correctitud}
+Cada subcadena repetida corresponde a un conjunto de sufijos consecutivos que la
+tienen como prefijo. La frecuencia es el numero de sufijos del bloque y la
+longitud maxima comun es el minimo LCP del bloque. La pila monotona enumera para
+cada posicion de LCP el mayor intervalo donde esa altura es el minimo. Por tanto
+considera todos los bloques candidatos relevantes.
+
+\subsection{Complejidad y trampas}
+$\SA+\LCP$ domina; la pila es $\bigO(n)$. Trampa: si el problema pide devolver
+la subcadena, no basta el valor; debes guardar una posicion de sufijo dentro del
+intervalo ganador.
+
+\newpage
+\section{Substring periodica}
+\textbf{Link.} \url{https://codeforces.com/group/AmklRC8lhZ/contest/695758/problem/I}
+
+\subsection{Enunciado interpretado}
+Se trabaja con substrings y periodos. Debes decidir si una substring puede
+describirse como repeticiones de un bloque mas corto, o contar/optimizar
+substrings periodicas.
+
+\subsection{Como interpretarlo en examen}
+Periodicidad significa igualdad entre una substring y ella misma desplazada.
+Para muchas queries de igualdad, usa LCP arbitrario:
+\[
+lcp(l,l+p)\ge len-p.
+\]
+
+\subsection{Teoria necesaria}
+Una cadena $X$ de longitud $m$ tiene periodo $p$ si:
+\[
+X[i]=X[i+p]\quad\text{para }0\le i<m-p.
+\]
+Eso equivale a decir que el prefijo de longitud $m-p$ coincide con el bloque
+desplazado $p$ posiciones.
+
+\subsection{Algoritmo}
+Para una query substring $S[l..r]$ de longitud $m$ y candidato $p$:
+\begin{enumerate}[leftmargin=*]
+\item Calcula $x=lcp(l,l+p)$ con $\SA+\LCP+\RMQ$.
+\item Si $x\ge m-p$, entonces $p$ es periodo.
+\item Si ademas el problema pide repeticion exacta de bloques, revisa $m\bmod p=0$.
+\end{enumerate}
+Para buscar periodos, se prueban divisores o candidatos derivados de KMP/Z,
+segun la forma exacta del problema.
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+is_period(l, r, p):
+  m = r - l + 1
+  if p <= 0 || p >= m: return false
+  return lcp_suffix(l, l+p) >= m-p
+
+is_exact_repetition(l, r, p):
+  m = r - l + 1
+  return m % p == 0 && is_period(l, r, p)
+\end{lstlisting}
+
+\subsection{Correctitud}
+La definicion de periodo exige que cada caracter coincida con el que esta $p$
+posiciones despues mientras ambos existan. Eso es exactamente comparar
+$S[l..r-p]$ con $S[l+p..r]$. Si el LCP entre los sufijos que empiezan en $l$ y
+$l+p$ alcanza $m-p$, esas dos substrings son iguales, por lo tanto $p$ es
+periodo. Si no alcanza, hay una posicion que viola la definicion.
+
+\subsection{Complejidad y trampas}
+Preprocesamiento $\bigO(n\log n)$. Cada prueba de periodo $\bigO(1)$. Trampa:
+``tener periodo $p$'' no siempre significa que la longitud sea multiplo de $p$;
+para repeticion exacta si debes pedir divisibilidad.
+
+\newpage
+\section{Imperial Roads}
+\textbf{Link.} \url{https://codeforces.com/gym/101889/problem/I}
+
+\subsection{Enunciado interpretado}
+Se tiene un grafo ponderado y se consideran consultas sobre carreteras. Para una
+carretera dada, se quiere saber el costo minimo de un arbol generador que la
+incluya obligatoriamente.
+
+\subsection{Como interpretarlo en examen}
+Este es un problema de MST + LCA/static tree. Primero construyes un MST. Luego
+cada consulta pregunta: si fuerzo una arista $(u,v,w)$, que arista saco del
+ciclo que se forma? La respuesta es sacar la arista mas pesada del camino entre
+$u$ y $v$ en el MST.
+
+\subsection{Teoria necesaria}
+Propiedad del ciclo del MST: si agregas una arista a un arbol, aparece un unico
+ciclo. Para volver a tener un arbol, debes eliminar una arista de ese ciclo. Si
+la arista nueva es obligatoria, la mejor opcion es eliminar la mas pesada del
+camino original.
+
+Para responder maximo en camino rapido, usa binary lifting augmentado:
+\[
+up[v][j]=\text{ancestro }2^j,
+\]
+\[
+mx[v][j]=\text{maximo peso en ese salto}.
+\]
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Construye MST con Kruskal y guarda su peso total $W$.
+\item Enraiza el MST y preprocesa $up$ y $mx$.
+\item Para consulta $(u,v,w)$, calcula $M=maxEdge(u,v)$.
+\item Responde:
+\[
+W+w-M.
+\]
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+maxEdge(u, v):
+  ans = 0
+  if depth[u] < depth[v]: swap(u, v)
+  lift u to depth[v], updating ans with mx[u][j]
+  if u == v: return ans
+  for j = LOG-1 downto 0:
+    if up[u][j] != up[v][j]:
+      ans = max(ans, mx[u][j], mx[v][j])
+      u = up[u][j]; v = up[v][j]
+  ans = max(ans, mx[u][0], mx[v][0])
+  return ans
+
+answer(edge u,v,w):
+  return mstWeight + w - maxEdge(u,v)
+\end{lstlisting}
+
+\subsection{Correctitud}
+Agregar la arista consultada al MST crea un ciclo formado por esa arista y el
+camino $u-v$ dentro del MST. Todo arbol generador que incluya la arista
+consultada debe eliminar alguna arista de ese ciclo. Para minimizar el peso
+total, se elimina la arista mas pesada del camino original. La tabla $mx$ calcula
+exactamente esa arista maxima al descomponer el camino en saltos de potencias de
+dos.
+
+\subsection{Complejidad y trampas}
+Kruskal $\bigO(m\log m)$. LCA $\bigO(n\log n)$ memoria y preproceso. Cada query
+$\bigO(\log n)$. Trampa: si la arista ya pertenece al MST, la formula sigue
+dando $W$ porque el maximo del camino puede ser la misma arista con peso $w$.
+
+\newpage
+\section{Fools and Roads}
+\textbf{Link.} \url{https://codeforces.com/problemset/problem/191/C}
+
+\subsection{Enunciado interpretado}
+Se da un arbol con $n$ nodos y luego muchas rutas entre pares de nodos. Para
+cada arista del arbol, debes contar cuantas de esas rutas pasan por ella.
+
+\subsection{Como interpretarlo en examen}
+Muchas rutas sobre arbol + contar aristas = diferencia en arbol. No actualices
+cada camino arista por arista. Marca extremos y LCA, luego acumula con DFS.
+
+\subsection{Teoria necesaria}
+En un arreglo, para sumar $1$ en un intervalo $[l,r]$, haces:
+\[
+diff[l]++,\quad diff[r+1]--.
+\]
+En arbol, una ruta $u-v$ se parte en $u\to a$ y $v\to a$, donde
+$a=\lca(u,v)$. La version arborea es:
+\[
+cnt[u]++,\quad cnt[v]++,\quad cnt[a]-=2.
+\]
+Luego cada subarbol acumula hacia arriba.
+
+\subsection{Algoritmo}
+\begin{enumerate}[leftmargin=*]
+\item Preprocesa LCA.
+\item Para cada ruta $(u,v)$:
+\[
+cnt[u]++,\quad cnt[v]++,\quad cnt[\lca(u,v)]-=2.
+\]
+\item Haz DFS postorden desde la raiz.
+\item Cuando vuelves de un hijo $x$, su acumulado final es la cantidad de rutas
+que pasan por la arista $(parent[x],x)$.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+for each path (u, v):
+  a = lca(u, v)
+  cnt[u]++
+  cnt[v]++
+  cnt[a] -= 2
+
+dfs(u, p):
+  sum = cnt[u]
+  for v in adj[u]:
+    if v == p: continue
+    child = dfs(v, u)
+    answer_edge(u,v) = child
+    sum += child
+  return sum
+\end{lstlisting}
+
+\subsection{Correctitud}
+Para una ruta $u-v$, los $+1$ en $u$ y $v$ suben por el arbol durante la
+acumulacion. Al llegar al LCA, restar $2$ cancela esas dos contribuciones antes
+de que pasen por encima del LCA. Por tanto solo quedan marcadas las aristas de
+los caminos $u\to a$ y $v\to a$, que juntos forman exactamente la ruta $u-v$.
+Como las contribuciones se suman linealmente, el metodo funciona para todas las
+rutas a la vez.
+
+\subsection{Complejidad y trampas}
+LCA $\bigO(n\log n)$. Cada ruta $\bigO(\log n)$. DFS $\bigO(n)$. Trampa: el
+valor de una arista se guarda normalmente en el hijo, no en el padre.
+
+\newpage
+\section{Frequency of String}
+\textbf{Link.} \url{https://codeforces.com/problemset/problem/963/D}
+
+\subsection{Enunciado interpretado}
+Hay un texto fijo y varias consultas. Cada consulta da un patron $P$ y un numero
+$k$. Se pide la menor longitud de una substring del texto que contenga al menos
+$k$ ocurrencias de $P$. Si no hay suficientes ocurrencias, la respuesta es
+imposible o $-1$ segun formato.
+
+\subsection{Como interpretarlo en examen}
+Primero reduce el problema: si conoces las posiciones donde aparece $P$, la
+respuesta es una ventana sobre esas posiciones. La parte dificil es obtener
+ocurrencias de muchos patrones. Para muchos patrones, Aho-Corasick es natural;
+con suffix array tambien puedes localizar ocurrencias como intervalo.
+
+\subsection{Teoria necesaria}
+Si $P$ aparece en posiciones:
+\[
+p_1<p_2<\cdots<p_t,
+\]
+entonces una substring que contiene las ocurrencias $p_i,\ldots,p_{i+k-1}$
+debe empezar no despues de $p_i$ y terminar al menos en
+$p_{i+k-1}+|P|-1$. La menor ventana para ese grupo tiene longitud:
+\[
+p_{i+k-1}-p_i+|P|.
+\]
+Por tanto basta revisar ocurrencias consecutivas.
+
+\subsection{Algoritmo con Aho-Corasick}
+\begin{enumerate}[leftmargin=*]
+\item Inserta todos los patrones en el trie.
+\item Construye failure links.
+\item Recorre el texto una vez.
+\item Cada vez que un patron termina en la posicion actual, guarda su posicion
+de inicio.
+\item Para cada consulta $(k,P)$, toma la lista de posiciones de $P$ y calcula
+el minimo de $pos[i+k-1]-pos[i]+|P|$.
+\end{enumerate}
+
+\subsection{Pseudocodigo corto}
+\begin{lstlisting}[language=C++]
+solve_query(pattern_id, k):
+  v = occurrences[pattern_id]
+  if v.size() < k: return -1
+  ans = INF
+  len = pattern_length[pattern_id]
+  for i = 0; i+k-1 < v.size(); i++:
+    ans = min(ans, v[i+k-1] - v[i] + len)
+  return ans
+\end{lstlisting}
+
+\subsection{Correctitud}
+Toda substring que contiene $k$ ocurrencias tiene una primera ocurrencia y una
+k-esima ocurrencia dentro de ella. Si esas ocurrencias son $p_i$ y
+$p_{i+k-1}$, la substring debe cubrir desde $p_i$ hasta el final de la ocurrencia
+en $p_{i+k-1}$. La ventana minima para ese conjunto tiene longitud
+$p_{i+k-1}-p_i+|P|$. Revisar todos los grupos consecutivos de $k$ ocurrencias
+cubre todas las respuestas posibles.
+
+\subsection{Complejidad y trampas}
+Construir Aho-Corasick cuesta $\bigO(L|\Sigma|)$ o $\bigO(L)$ segun
+implementacion, donde $L$ es la suma de longitudes de patrones. Recorrer texto
+$\bigO(n+occ)$. Cada query cuesta proporcional al numero de ocurrencias del
+patron si se hace directo. Trampa: ocurrencias pueden solaparse; no debes
+descartarlas.
+
+\newpage
+\section{Ruta de estudio express para estos problemas}
+
+\subsection{Orden recomendado}
+\begin{enumerate}[leftmargin=*]
+\item Static RMQ: aprende sparse table hasta poder probarla sin mirar.
+\item Suffix array + LCP: entiende suffix, rank, LCP y Manber-Myers.
+\item Busqueda de subcadenas: patron como intervalo en SA.
+\item Subcadenas distintas y LCS: formulas clasicas con LCP.
+\item Ordenando subcadenas: LCP arbitrario con RMQ.
+\item Bordes: prefix function de KMP.
+\item Refran/periodicidad/Frequency: problemas avanzados que combinan ideas.
+\item Imperial/Fools: LCA aplicado a caminos y diferencias en arbol.
+\end{enumerate}
+
+\subsection{Plantilla universal de respuesta}
+Cuando te den un problema de este bloque, responde asi:
+\begin{enumerate}[leftmargin=*]
+\item Identifico el objeto fijo: arreglo, arbol o string.
+\item Como hay muchas consultas, preproceso.
+\item Defino la estructura y que guarda.
+\item Transformo la query a una operacion de esa estructura.
+\item Pruebo correctitud con el invariante clave.
+\item Cierro complejidad de preproceso, query y memoria.
+\end{enumerate}
+
+\subsection{Senales para no equivocarte}
+\begin{itemize}[leftmargin=*]
+\item ``No updates'' + rango = sparse table.
+\item ``Camino en arbol'' = LCA, a veces con max/min por salto.
+\item ``Muchas rutas y contar aristas'' = diferencia en arbol.
+\item ``Patron en texto fijo'' = intervalo en suffix array.
+\item ``Distinct substrings'' = $n(n+1)/2-\sum LCP$.
+\item ``Comparar substrings'' = LCP arbitrario + RMQ.
+\item ``Prefijo y sufijo'' = KMP/Z.
+\item ``Muchas ocurrencias de muchos patrones'' = Aho-Corasick o SA.
+\end{itemize}
+
+\end{document}
