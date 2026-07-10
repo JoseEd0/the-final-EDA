@@ -1,0 +1,1492 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [ 4 0 R 10 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Contents 5 0 R
+/MediaBox [ 0 0 841.8898 595.2756 ]
+/Resources <<
+/Font <<
+/F1 6 0 R
+/F1-0 7 0 R
+/F2 8 0 R
+/F2-0 9 0 R
+>>
+/ProcSet [ /ImageB /ImageC /ImageI /PDF /Text ]
+>>
+/Rotate 0
+/Trans <<
+>>
+/Type /Page
+/Annots [ ]
+/Parent 2 0 R
+>>
+endobj
+5 0 obj
+<<
+/Length 19335
+>>
+stream
+q
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+1 1 1 rg
+n 0 0 841.8898 595.2756 re f*
+0 0 0 rg
+BT /F2 7 Tf 8.4 TL ET
+BT 1 0 0 1 342.7689 583.5394 Tm (CARA A - STATIC + STRINGS + STATIC TREES) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 569.1394 Tm (EXAM ANSWER TEMPLATE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 565.7394 Tm (Objeto fijo/dinamico; estructura; que guarda; algoritmo; invariante/correctitud; complejidad) Tj T* ET
+BT 1 0 0 1 7.23622 561.1094 Tm (preprocess/query/update/mem. Palabras magicas: bloque contiguo, propiedad de ciclo, flujo en arbol,) Tj T* ET
+BT 1 0 0 1 7.23622 556.4794 Tm (greedy earliest subsequence, rollback snapshot.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 543.1494 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 544.7494 Tm (MANBER-MYERS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 541.3494 Tm (len=1,2,4... sufijo i -> par\(rank[i],rank[i+len]\). Ordenar pares; pares iguales mismo newRank. Correcto) Tj T* ET
+BT 1 0 0 1 7.23622 536.7194 Tm (porque compara primera mitad y si empata segunda mitad. O\(nlog^2n\) con sort; O\(nlogn\) optimizado.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 523.3894 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 524.9894 Tm (DISTINCT SUBSTRINGS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 521.5894 Tm (Total substrings n\(n+1\)/2. Sufijo SA[i] aporta n-SA[i] prefijos; LCP[i] ya aparecieron con anterior.) Tj T* ET
+BT 1 0 0 1 7.23622 516.9594 Tm (Ans=sum\(n-SA[i]-LCP[i]\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 503.6294 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 505.2294 Tm (REFRAIN) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 501.8294 Tm (Array ints. Maximizar len*freq de una subcadena. SA sobre array; LCP histogram. Un intervalo de sufijos) Tj T* ET
+BT 1 0 0 1 7.23622 497.1994 Tm (con min LCP>=L da freq=width+1. Largest rectangle over LCP da max L*freq; recuperar posicion de sufijo.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 483.8694 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 485.4694 Tm (IMPERIAL ROADS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 482.0694 Tm (MST T peso W. Forzar e=\(u,v,w\): T+e crea ciclo. Quitar max edge del path_T\(u,v\).) Tj T* ET
+BT 1 0 0 1 7.23622 477.4394 Tm (ans=W+w-maxEdge\(u,v\). Correctitud: propiedad de ciclo; para incluir e la unica decision es que arista) Tj T* ET
+BT 1 0 0 1 7.23622 472.8094 Tm (quitar del ciclo.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 459.4794 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 461.0794 Tm (ARPA PARITY TREE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 457.6794 Tm (Si labels en camino y pregunta puede formar palindromo: usar mask xor de paridades root->v. Path mask =) Tj T* ET
+BT 1 0 0 1 7.23622 453.0494 Tm (pref[u] xor pref[v] xor bit\(label[lca]\) segun vertices. Palindromo iff popcount\(mask\)<=1.) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 212.5984 6.23622 m 212.5984 577.0394 l S
+.913725 .913725 .913725 rg
+n 214.5827 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 569.1394 Tm (SPARSE TABLE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 565.7394 Tm (Static, sin updates, op idempotente. st[k][i]=op\(A[i..i+2^k-1]\); transicion dos mitades. [l,r]:) Tj T* ET
+BT 1 0 0 1 215.5827 561.1094 Tm (len=r-l+1,k=lg[len], op\(st[k][l],st[k][r-2^k+1]\). [l,r\): len=r-l. O\(nlogn\)/O\(1\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 547.7794 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 549.3794 Tm (HLD CORE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 545.9794 Tm (heavy child=max subtree. Light edge reduce size al menos mitad -> O\(logn\) light por root-node. Camino) Tj T* ET
+BT 1 0 0 1 215.5827 541.3494 Tm (u-v se parte en O\(logn\) segmentos de cadenas. pos/head/parent/depth/out. Con segtree path O\(log^2n\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 528.0194 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 529.6194 Tm (KASAI) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 526.2194 Tm (Para i texto: p=rank[i], vecino prev j=SA[p-1]. Si antes LCP era h, al mover i+1 baja <=1. while) Tj T* ET
+BT 1 0 0 1 215.5827 521.5894 Tm (S[i+h]==S[j+h] h++. LCP[p]=h; h=max\(h-1,0\). O\(n\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 508.2594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 509.8594 Tm (LCS TWO STRINGS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 506.4594 Tm (SA de A#B$. Max LCP vecino de origen distinto. Si empate lexicografico, escoger candidato con menor) Tj T* ET
+BT 1 0 0 1 215.5827 501.8294 Tm (orden SA. Separadores no deben aparecer en strings.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 488.4994 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 490.0994 Tm (PERIODIC SUBSTRING) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 486.6994 Tm (Periodo p valido en substring [l,l+len\) si lcp\(l,l+p\)>=len-p. Max k=len/p. Problema avanzado usa runs;) Tj T* ET
+BT 1 0 0 1 215.5827 482.0694 Tm (SA+LCP/LCS verifica igualdad O\(1\). En examen explica runs/periodos, no brute force.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 468.7394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 470.3394 Tm (TREE PATH SUBSEQ) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 466.9394 Tm (HLD ordena U->V en segmentos. Para cada char c, lista posiciones en base. Mantener puntero en S. En) Tj T* ET
+BT 1 0 0 1 215.5827 462.3094 Tm (segmento forward usar lower_bound; reverse usar upper_bound anterior. Greedy primera aparicion es) Tj T* ET
+BT 1 0 0 1 215.5827 457.6794 Tm (optimo para subsecuencia.) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 420.9449 6.23622 m 420.9449 577.0394 l S
+.913725 .913725 .913725 rg
+n 422.9291 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 569.1394 Tm (RMQ PROOF) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 565.7394 Tm (Induccion en k: bloque 2^k = dos bloques 2^{k-1}. Query: dos bloques elegidos cubren todo rango; solape) Tj T* ET
+BT 1 0 0 1 423.9291 561.1094 Tm (permitido por idempotencia op\(x,x\)=x. Si op=sum NO sirve con solape; usar segment tree/Fenwick.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 547.7794 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 549.3794 Tm (HLD PITFALLS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 545.9794 Tm (Si valores en aristas, guardar peso\(parent[v],v\) en pos[v]; al consultar tramo final excluir pos[lca].) Tj T* ET
+BT 1 0 0 1 423.9291 541.3494 Tm (Subtree\(u\) es intervalo [in[u],out[u]] si DFS/HLD asigna subarbol contiguo.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 528.0194 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 529.6194 Tm (LCP FORMULA) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 526.2194 Tm (Si rank[i]=a< b=rank[j], lcp\(i,j\)=min\(LCP[a+1..b]\). Prueba: en SA, LCP comun de extremos queda limitado) Tj T* ET
+BT 1 0 0 1 423.9291 521.5894 Tm (por minimo entre vecinos; todos comparten prefijo de longitud ese minimo. Preprocesa RMQ.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 508.2594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 509.8594 Tm (SUBSTRING COMPARE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 506.4594 Tm (A=\(l1,r1\),B=\(l2,r2\). x=min\(lcp\(l1,l2\),lenA,lenB\). Si x<minLen compara char siguiente. Si x==minLen, mas) Tj T* ET
+BT 1 0 0 1 423.9291 501.8294 Tm (corta menor. Si iguales y statement pide, desempata por \(l,r\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 488.4994 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 490.0994 Tm (FREQUENCY STRING) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 486.6994 Tm (Para patron m y k: occ sorted. Min substring con k ocurrencias = min_i occ[i+k-1]-occ[i]+|m|. Si occ<k -> -1.) Tj T* ET
+BT 1 0 0 1 423.9291 482.0694 Tm (Muchos patrones: Aho-Corasick para recolectar occ; ocurrencias pueden solaparse.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 468.7394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 470.3394 Tm (TRIE LEX ORDER) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 466.9394 Tm (DFS preorder con hijos ordenados por caracter. Visitar nodo antes que hijos porque string prefix <) Tj T* ET
+BT 1 0 0 1 423.9291 462.3094 Tm (extension. Hijo char menor antes que mayor. Lowercase: iterar 26 letras => O\(n\).) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 629.2913 6.23622 m 629.2913 577.0394 l S
+.913725 .913725 .913725 rg
+n 631.2756 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 569.1394 Tm (LCA BINARY) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 565.7394 Tm (up[v][j]=ancestro 2^j; mx[v][j]=max edge al subir. Igualar depth; subir ambos si up difiere; ultimo paso) Tj T* ET
+BT 1 0 0 1 632.2756 561.1094 Tm (incluye edge a LCA. dist\(u,v\)=dep[u]+dep[v]-2dep[lca]. O\(logn\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 547.7794 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 549.3794 Tm (SA/RANK) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 545.9794 Tm (SA[p]=indice del p-esimo sufijo en orden. rank[i]=p tal que SA[p]=i. Rank es orden/clase, no caracter.) Tj T* ET
+BT 1 0 0 1 632.2756 541.3494 Tm (Sufijos con mismo prefijo P quedan consecutivos en SA.) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 528.0194 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 529.6194 Tm (PATTERN SEARCH) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 526.2194 Tm (P en texto T: L=primer sufijo >=P. R=primer sufijo que ya no tiene prefijo P. Yes iff L<R. Count=R-L. Occ) Tj T* ET
+BT 1 0 0 1 632.2756 521.5894 Tm (positions=SA[L..R-1]. Simple O\(|P|logn\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 508.2594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 509.8594 Tm (BORDERS ALL SUBSTR) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 506.4594 Tm (Borde no vacio de longitud b en substring equivale a dos copias iguales length b en extremos -> par de) Tj T* ET
+BT 1 0 0 1 632.2756 501.8294 Tm (sufijos con lcp>=b. Total = n\(n+1\)/2 + sum_{i<j}lcp\(i,j\). Sum lcp pares = sum minima de subarrays LCP con) Tj T* ET
+BT 1 0 0 1 632.2756 497.1994 Tm (pila monotona.) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 483.8694 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 485.4694 Tm (FOOLS ROADS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 482.0694 Tm (Cada query path u-v: cnt[u]++,cnt[v]++,cnt[lca]-=2. Postorder acumula. sub[x] cuenta rutas que cruzan) Tj T* ET
+BT 1 0 0 1 632.2756 477.4394 Tm (edge parent[x]-x. O\(\(n+q\)logn\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 464.1094 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 465.7094 Tm (TREE AND QUERIES) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 462.3094 Tm (DSU on tree/small-to-large: para cada subarbol responder colores/frecuencias. Mantener hijo pesado,) Tj T* ET
+BT 1 0 0 1 632.2756 457.6794 Tm (borrar contribuciones de hijos livianos, conservar pesado, agregar livianos. Cada nodo se re-agrega) Tj T* ET
+BT 1 0 0 1 632.2756 453.0494 Tm (O\(logn\) o amort O\(nlogn\)/O\(n\).) Tj T* ET
+ 
+
+Q
+
+q
+0.0 0.0 841.8898 595.2756 re
+W
+n
+1 0 0 1 0 0 cm
+BT
+/F1-0 12 Tf
+14.4 TL
+ET
+0.827451 0.827451 0.827451 RG
+0.15 w
+0.866667 0.866667 0.866667 rg
+n
+6.23622 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+6.23622 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 245.4 Tm
+(RMQ PSEUDO) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 242.5 Tm
+(build lg\073 st\1330\135\075A\073 for k\072 for i\072 st\133k\135\133i\135\075min\050st\133k\0551\135\133i\135\054st\133k\0551\135\133i\0532\136\050k\0551\051\135\051\056 Query\072 k\075lg\133len\135\056 Si piden posicion del minimo\054) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 238.05 Tm
+(guardar par\050valor\054pos\051\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 227.3 Tm
+(BANANA SA EX) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 224.4 Tm
+(banana sufijos orden\072 a\0505\051\054 ana\0503\051\054 anana\0501\051\054 banana\0500\051\054 na\0504\051\054 nana\0502\051\056 SA\075\1335\0543\0541\0540\0544\0542\135\056 rank\1331\135\0752 porque) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 219.95 Tm
+(anana es tercer sufijo\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 209.2 Tm
+(LOWER\057UPPER P) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 206.3 Tm
+(Para prefijo P\054 lower busca primer suffix \076\075 P\056 Upper puede buscar P con ultimo char aumentado o usar) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 201.85 Tm
+(comparador has\137prefix\056 En teoria basta intervalo contiguo\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 189.7 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 191.1 Tm
+(KMP\057Z CUANDO) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 188.2 Tm
+(Si una sola cadena y bordes\057prefijos\072 KMP prefix pi o Z\056 Si muchas comparaciones arbitrary substrings\072) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 183.75 Tm
+(SA\053LCP\053RMQ\056 Si muchos patrones\072 Aho\055Corasick\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+214.5827 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+214.5827 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 245.4 Tm
+(SUBSEQ PATH PSEUDO) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 242.5 Tm
+(segments\075decompose\137path\137ordered\050U\054V\051\056 idx\0750\056 for seg in segments\072 while idx\074\174S\174 and find S\133idx\135 in seg after) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 238.05 Tm
+(current\072 consume\056 YES iff idx\075\075\174S\174\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 227.3 Tm
+(HLD ORDER PATH) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 224.4 Tm
+(U\055\076LCA se guarda en segmentos upward\073 LCA\055\076V se guarda y luego se invierte para respetar orden\056 Cuidado) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 219.95 Tm
+(con incluir LCA una sola vez si se concatenan letras\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 209.2 Tm
+(LCA PATH MAX) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 206.3 Tm
+(Si edge weights en MST\072 mx\133v\135\1330\135\075w\050parent\054v\051\056 Al subir 2\136j\072 mx\133v\135\133j\135\075max\050mx\133v\135\133j\0551\135\054mx\133up\133v\135\133j\0551\135\135\133j\0551\135\051\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 194.15 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 195.55 Tm
+(IMPERIAL EDGE IN MST) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 192.65 Tm
+(Si e ya esta en MST\054 maxEdge\050u\054v\051\075w si consideras path sin e\077 En query de arista MST\054 respuesta debe W\056) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 188.2 Tm
+(Formula W\053w\055max path entre u\054v en MST incluye esa misma arista como maxima al menos w\073 funciona si path) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 183.75 Tm
+(es el path MST\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+422.9291 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+422.9291 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 245.4 Tm
+(LCP PAIR SUM STACK) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 242.5 Tm
+(Para suma minimos subarrays\072 stack pares\050h\054count\051\054 cur\075sum minimos subarrays terminando aqui\056 Al meter h\054) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 238.05 Tm
+(pop \076\075h restando height\052count\054 acum count\054 push\050h\054count\051\054 cur\053\075h\052count\054total\053\075cur\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 227.3 Tm
+(LCS CORRECT) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 224.4 Tm
+(Cualquier common substring es prefijo de un sufijo de A y uno de B\056 En el intervalo de sufijos que comparten) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 219.95 Tm
+(ese prefijo hay vecinos de origen distinto\054 por eso mirar vecinos basta\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 209.2 Tm
+(COMPARATOR PROOF) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 206.3 Tm
+(Orden lex depende del primer caracter distinto\056 LCP da cantidad igual inicial\056 Si no hay distinto antes de que una) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 201.85 Tm
+(termine\054 la corta es prefijo y menor\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 189.7 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 191.1 Tm
+(DISTINCT PROOF) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 188.2 Tm
+(Al recorrer SA\054 todo prefijo de sufijo actual es substring\056 Los prefijos de longitud \074\075LCP con anterior ya fueron) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 183.75 Tm
+(vistos\073 los mayores son nuevos\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+631.2756 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+631.2756 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 245.4 Tm
+(FOOLS EDGE ANSWER) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 242.5 Tm
+(Si aristas estan numeradas\054 al DFS desde child x asigna ans\133id\050parent\054x\051\135 \075 acc\133x\135\056 Root no tiene edge\056) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 238.05 Tm
+(cnt\133lca\135\055\0752 no \0551\057\0551 porque el camino entra y sale del LCA hacia ambos lados\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 227.3 Tm
+(DSU ON TREE PROOF) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 224.4 Tm
+(Small\055to\055large\072 cada vez que un elemento se mueve a una bolsa mayor\054 el tamano al menos se duplica\054 por) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 219.95 Tm
+(tanto se mueve O\050logn\051 veces\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 209.2 Tm
+(TRIE VARIANT) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 206.3 Tm
+(Si comparacion lex dice palabra corta antes de extension\054 preorder\056 Si root vacio no se pide\054 omitir root pero) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 201.85 Tm
+(mantener preorder para hijos\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 189.7 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 191.1 Tm
+(EXAM PHRASES) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 188.2 Tm
+(\042Preproceso porque estructura es estatica\042\056 \042La query se reduce a RMQ\057LCA\042\056 \042El intervalo en SA es contiguo\042\056) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 183.75 Tm
+(\042El rollback restaura invariante por rama\042\056) Tj
+T*
+ET
+Q
+
+
+endstream
+endobj
+6 0 obj
+<<
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+/Name /F1
+/Subtype /Type1
+/Type /Font
+>>
+endobj
+7 0 obj
+<<
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+/Name /F1
+/Subtype /Type1
+/Type /Font
+>>
+endobj
+8 0 obj
+<<
+/BaseFont /Helvetica-Bold
+/Encoding /WinAnsiEncoding
+/Name /F2
+/Subtype /Type1
+/Type /Font
+>>
+endobj
+9 0 obj
+<<
+/BaseFont /Helvetica-Bold
+/Encoding /WinAnsiEncoding
+/Name /F2
+/Subtype /Type1
+/Type /Font
+>>
+endobj
+10 0 obj
+<<
+/Contents 11 0 R
+/MediaBox [ 0 0 841.8898 595.2756 ]
+/Resources <<
+/Font <<
+/F1 6 0 R
+/F1-0 7 0 R
+/F2 8 0 R
+/F2-0 9 0 R
+>>
+/ProcSet [ /ImageB /ImageC /ImageI /PDF /Text ]
+>>
+/Rotate 0
+/Trans <<
+>>
+/Type /Page
+/Annots [ ]
+/Parent 2 0 R
+>>
+endobj
+11 0 obj
+<<
+/Length 17976
+>>
+stream
+q
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+1 1 1 rg
+n 0 0 841.8898 595.2756 re f*
+0 0 0 rg
+BT /F2 7 Tf 8.4 TL ET
+BT 1 0 0 1 352.4954 583.5394 Tm (CARA B - DYNAMIC + INTEGER + EXTRA) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 569.1394 Tm (CENTROID COUNT PATHS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 565.7394 Tm (Count pairs dist<=C. En centroid c: collect distancias por child. ans += count\(all\) - sum count\(child\) usando) Tj T* ET
+BT 1 0 0 1 7.23622 561.1094 Tm (sort+two pointers. Recurse en componentes. Cada path contado en primer centroid que separa endpoints.) Tj T* ET
+BT 1 0 0 1 7.23622 556.4794 Tm (O\(nlog^2n\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 543.1494 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 544.7494 Tm (EULER TOUR TREE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 541.3494 Tm (Forest dinamico como secuencia Euler en BST balanceado. connected si representantes BST iguales.) Tj T* ET
+BT 1 0 0 1 7.23622 536.7194 Tm (link=splice tours; cut=split/recombine. Agregados componente/subtree en nodo raiz del BST. Mejor para) Tj T* ET
+BT 1 0 0 1 7.23622 532.0894 Tm (component/subtree que path.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 518.7594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 520.3594 Tm (vEB OPERATIONS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 516.9594 Tm (Split x=\(high,low\) with sqrt\(u\). Store min,max, summary of nonempty clusters, cluster[h]. succ: if x<min) Tj T* ET
+BT 1 0 0 1 7.23622 512.3294 Tm (return min; else try succ low in cluster; else next cluster from summary and its min. T\(u\)=T\(sqrtu\)+O\(1\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 498.9994 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 500.5994 Tm (SIGNATURE SORT) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 497.1994 Tm (Para w grande: partir en bloques, reemplazar digitos presentes por hashes/firmas O\(logn\), reducir bits) Tj T* ET
+BT 1 0 0 1 7.23622 492.5694 Tm (recursivamente y aplicar packed/radix. Idea: usar enteros para romper comparaciones.) Tj T* ET
+.913725 .913725 .913725 rg
+n 6.23622 479.2394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 7.23622 480.8394 Tm (WHAT TO PRIORITIZE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 7.23622 477.4394 Tm (Si ves string: intenta SA/LCP interval, formula sum LCP, comparator. Si ves tree path: LCA/HLD/difference.) Tj T* ET
+BT 1 0 0 1 7.23622 472.8094 Tm (Si ves add/delete over time: offline intervals+rollback. Si ves integer: state n,u,w and pick vEB/Yfast/radix.) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 212.5984 6.23622 m 212.5984 577.0394 l S
+.913725 .913725 .913725 rg
+n 214.5827 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 569.1394 Tm (ROLLBACK DSU) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 565.7394 Tm (Offline add/delete/query. Edge -> intervalos vida. Intervalo a nodos de segtree tiempo. DFS: snapshot,) Tj T* ET
+BT 1 0 0 1 215.5827 561.1094 Tm (union del nodo, hoja responde, rollback. No path compression. Union by size. Correcto: path root-hoja) Tj T* ET
+BT 1 0 0 1 215.5827 556.4794 Tm (contiene aristas activas.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 543.1494 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 544.7494 Tm (LINK-CUT TREE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 541.3494 Tm (Preferred paths en splay. access\(v\) expone root-v. makeroot\(u\)+access\(v\) expone path u-v; agregado esta) Tj T* ET
+BT 1 0 0 1 215.5827 536.7194 Tm (en raiz del splay. link/cut/path query O\(logn\) amort. Bueno para dynamic tree path min/max/sum.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 523.3894 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 524.9894 Tm (PREDECESSOR PROBLEM) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 521.5894 Tm (Maintain S: insert/delete/member/pred/succ. BST O\(logn\). vEB O\(loglogu\)=O\(logw\), space Theta\(u\). Y-fast) Tj T* ET
+BT 1 0 0 1 215.5827 516.9594 Tm (O\(logw\) expected/amort, space O\(n\). Fusion O\(log_w n\) theoretical.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 503.6294 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 505.2294 Tm (COUNTING/RADIX) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 501.8294 Tm (Counting O\(n+U_digit\). Radix stable by b-bit digits: O\(\(n+2^b\)*ceil\(w/b\)\). Choose b=Theta\(logn\) ->) Tj T* ET
+BT 1 0 0 1 215.5827 497.1994 Tm (O\(n*w/logn\). If w=O\(logn\), linear O\(n\). Stability preserves previous digits.) Tj T* ET
+.913725 .913725 .913725 rg
+n 214.5827 483.8694 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 215.5827 485.4694 Tm (PROOF PHRASES) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 215.5827 482.0694 Tm (Sparse: induction+overlap. SA search: contiguous interval. MST forced edge: cycle property. Fools: flow) Tj T* ET
+BT 1 0 0 1 215.5827 477.4394 Tm (conservation. HLD: light edge halves. Centroid: first separator counts once. Rollback: segment path equals) Tj T* ET
+BT 1 0 0 1 215.5827 472.8094 Tm (active set.) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 420.9449 6.23622 m 420.9449 577.0394 l S
+.913725 .913725 .913725 rg
+n 422.9291 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 569.1394 Tm (DSU STACK) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 565.7394 Tm (union roots a,b. Si same guardar marcador. Si size[a]<size[b] swap. Push \(b,a,sizeA,sumA,components\).) Tj T* ET
+BT 1 0 0 1 423.9291 561.1094 Tm (parent[b]=a; size[a]+=size[b]; sum[a]+=sum[b]; comp--. Rollback restaura.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 547.7794 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 549.3794 Tm (OFFLINE DECISION) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 545.9794 Tm (Si te dan todas operaciones o no exigen online -> rollback DSU. Si solo inserta edges -> DSU normal. Si) Tj T* ET
+BT 1 0 0 1 423.9291 541.3494 Tm (solo borra -> procesar queries al reves insertando. Si online general -> estructuras por niveles/Euler tour.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 528.0194 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 529.6194 Tm (INTEGER MODEL) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 526.2194 Tm (n keys, universe u=2^w, word w bits. Comparison model lower bound sort nlogn. Word RAM: bit/arithmetic) Tj T* ET
+BT 1 0 0 1 423.9291 521.5894 Tm (O\(1\). Transdichotomous w>=logn. AC0 RAM no multiplicacion; cuidado con fusion tricks.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 508.2594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 509.8594 Tm (FUSION TREE) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 506.4594 Tm (Node degree k=w^\(1/5\). Critical bits distinguish keys. sketch extracts them; packed sketches compare in) Tj T* ET
+BT 1 0 0 1 423.9291 501.8294 Tm (parallel. Node pred O\(1\), height O\(log_k n\)=O\(log_w n\). Mention model assumptions.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 488.4994 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 490.0994 Tm (METRIC FUNCTIONS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 486.6994 Tm (sqrt\(|x-y|\) metrica porque sqrt\(a+b\)<=sqrt\(a\)+sqrt\(b\). min\(1,d\) metrica si d metrica por truncamiento) Tj T* ET
+BT 1 0 0 1 423.9291 482.0694 Tm (subaditivo. |x-y|+|f\(x\)-f\(y\)| metrica si incluye |x-y| para identidad.) Tj T* ET
+.913725 .913725 .913725 rg
+n 422.9291 468.7394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 423.9291 470.3394 Tm (COMMON TRAPS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 423.9291 466.9394 Tm (Half-open vs closed range. Edge values in HLD exclude lca pos. LCP array indexing often LCP[i]=between) Tj T* ET
+BT 1 0 0 1 423.9291 462.3094 Tm (SA[i-1],SA[i]. Do not use path compression with rollback. Use long long for counts n^2/LCP sums.) Tj T* ET
+.827451 .827451 .827451 RG
+.2 w
+n 629.2913 6.23622 m 629.2913 577.0394 l S
+.913725 .913725 .913725 rg
+n 631.2756 567.5394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 569.1394 Tm (COMPONENT SUM) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 565.7394 Tm (DSU guarda sum[root]. query\(v\)=sum[find\(v\)]. vertex add en rollback: push old sum[root], sum[root]+=delta;) Tj T* ET
+BT 1 0 0 1 632.2756 561.1094 Tm (rollback restaura. Yosupo dynamic graph vertex add component sum mezcla intervalos edges + eventos) Tj T* ET
+BT 1 0 0 1 632.2756 556.4794 Tm (valores.) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 543.1494 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 544.7494 Tm (DYNAMIC CLASSIFY) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 541.3494 Tm (Static tree path -> HLD/LCA. Dynamic forest path -> LCT. Dynamic forest component/subtree -> ETT.) Tj T* ET
+BT 1 0 0 1 632.2756 536.7194 Tm (General graph offline -> rollback DSU. General graph online -> spanning forests por niveles + ETT \(teorico) Tj T* ET
+BT 1 0 0 1 632.2756 532.0894 Tm (O\(log^2n\)\).) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 518.7594 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 520.3594 Tm (Y-FAST) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 516.9594 Tm (X-fast stores prefixes of binary trie levels in hash tables -> predecessor by binary searching level. Too) Tj T* ET
+BT 1 0 0 1 632.2756 512.3294 Tm (much space O\(nw\). Y-fast stores representatives + buckets size O\(w\); split/merge buckets; O\(n\) space.) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 498.9994 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 500.5994 Tm (METRIC CHECK) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 497.1994 Tm (Metrica: nonneg, identity, symmetry, triangle. Suma metricas es metrica. \(x-y\)^2 falla triangle: d\(0,2\)=4 >) Tj T* ET
+BT 1 0 0 1 632.2756 492.5694 Tm (d\(0,1\)+d\(1,2\)=2. L1,L2,Linf metricas. Pesos positivos L1 metricas.) Tj T* ET
+.913725 .913725 .913725 rg
+n 631.2756 479.2394 204.378 6.5 re f*
+0 0 0 rg
+BT /F2 4.75 Tf 5.7 TL ET
+BT 1 0 0 1 632.2756 480.8394 Tm (COMPLEXITY CHEATS) Tj T* ET
+BT /F1 4.25 Tf 5.1 TL ET
+BT 1 0 0 1 632.2756 477.4394 Tm (SA MM O\(nlog^2n\) or O\(nlogn\), Kasai O\(n\), RMQ build O\(nlogn\)/query O\(1\). HLD O\(n\)+O\(log^2n\). LCA) Tj T* ET
+BT 1 0 0 1 632.2756 472.8094 Tm (O\(nlogn\)/O\(logn\). Rollback intervals O\(m log q\). Centroid O\(nlog^2n\).) Tj T* ET
+ 
+
+Q
+
+q
+0.0 0.0 841.8898 595.2756 re
+W
+n
+1 0 0 1 0 0 cm
+BT
+/F1-0 12 Tf
+14.4 TL
+ET
+0.827451 0.827451 0.827451 RG
+0.15 w
+0.866667 0.866667 0.866667 rg
+n
+6.23622 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+6.23622 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 245.4 Tm
+(CENTROID TWO POINTER) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 242.5 Tm
+(sort D\056 l\0750\054r\075len\050D\051\0551\073 while l\074r\072 if D\133l\135\053D\133r\135\074\075C\072 ans\053\075r\055l\054l\053\053 else r\055\055\056 Para contar caminos desde centroid a) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 238.05 Tm
+(nodo\054 incluir distancia 0 del centroid\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 227.3 Tm
+(CENTROID PROOF) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 224.4 Tm
+(Al quitar centroid\054 cualquier path con endpoints en componentes distintas pasa por centroid y se cuenta en all\056) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 219.95 Tm
+(Los endpoints en misma componente se restan y se contaran en recursion\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 209.2 Tm
+(ROLLBACK INTERVALS) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 206.3 Tm
+(Al leer ops\072 add edge guarda start\056 remove cierra \133start\054t\0551\135\056 Al final\054 edges abiertas cierran \133start\054q\135\056 Query en) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 201.85 Tm
+(hoja t\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+6.23622 189.7 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 7.23622 191.1 Tm
+(OFFLINE REVERSA) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 7.23622 188.2 Tm
+(Solo deletions \053 connectivity\072 empieza con grafo final\054 procesa operaciones al reves\073 delete se vuelve add\056 DSU) Tj
+T*
+ET
+BT
+1 0 0 1 7.23622 183.75 Tm
+(responde conectividad\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+214.5827 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+214.5827 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 245.4 Tm
+(ETT CUT\057LINK) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 242.5 Tm
+(ETT cut de edge separa tour en partes con split\073 link concatena tours insertando ocurrencias\056 Mantiene) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 238.05 Tm
+(agregado por BST\072 size\054sum\054min\056 connected por puntero a raiz del treap\057splay\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 227.3 Tm
+(LCT ACCESS IDEA) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 224.4 Tm
+(access\050v\051\072 hace que el camino raiz\055v sea preferido\056 Cada splay guarda orden por profundidad\056 Despues) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 219.95 Tm
+(makeroot\050u\051\054 access\050v\051\054 el splay de v contiene exactamente path u\055v\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 209.2 Tm
+(ONLINE GENERAL DC) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 206.3 Tm
+(Mantener spanning forest por niveles\056 Al borrar tree edge\054 buscar replacement non\055tree edge\073 si no existe\054) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 201.85 Tm
+(componente se separa\056 ETT mantiene cada forest\056 Mencionar O\050log\1362 n\051 teorico\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+214.5827 189.7 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 215.5827 191.1 Tm
+(WHEN NOT LCT) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 215.5827 188.2 Tm
+(Si arbol no cambia\072 HLD mas simple\056 Si solo connected\072 ETT\057DSU\056 Si offline\072 rollback DSU mas facil y) Tj
+T*
+ET
+BT
+1 0 0 1 215.5827 183.75 Tm
+(defendible\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+422.9291 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+422.9291 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 245.4 Tm
+(vEB SPACE FIX) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 242.5 Tm
+(vEB directo Theta\050u\051\056 Para universo enorme y sparse\054 decir \042version hash\057compressed\042 o Y\055fast\056 Nunca) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 238.05 Tm
+(prometer espacio lineal con vEB basico\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 227.3 Tm
+(vEB RECURRENCE) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 224.4 Tm
+(u \055\076 sqrt\050u\051 por llamada\056 Sea u\0752\136w\073 bits w \055\076 w\0572\056 T\050w\051\075T\050w\0572\051\053O\0501\051\075O\050log w\051\075O\050loglogu\051\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 212.25 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 213.65 Tm
+(RADIX STABLE) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 210.75 Tm
+(Ordena de digito menos significativo a mas significativo con counting estable\056 Estabilidad conserva orden de) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 206.3 Tm
+(digitos ya procesados\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+422.9291 194.15 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 423.9291 195.55 Tm
+(SORT CHOICE) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 423.9291 192.65 Tm
+(u pequeno \055\076 counting O\050n\053u\051\056 w\075O\050logn\051\055\076radix O\050n\051\056 w grande teorico\055\076signature\056 Solo comparaciones \055\076) Tj
+T*
+ET
+BT
+1 0 0 1 423.9291 188.2 Tm
+(mergesort\057heapsort O\050nlogn\051\056) Tj
+T*
+ET
+0.866667 0.866667 0.866667 rg
+n
+631.2756 256 204.378 0.4 re
+f*
+0.94902 0.94902 0.94902 rg
+n
+631.2756 244 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 245.4 Tm
+(METRIC TRIANGLE TEST) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 242.5 Tm
+(Para refutar\054 busca x\074y\074z con directo grande y via intermedio chico\056 Square falla\056 Para demostrar\054 usar) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 238.05 Tm
+(desigualdad conocida\072 \174x\055z\174\074\075\174x\055y\174\053\174y\055z\174\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 225.9 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 227.3 Tm
+(METRIC SUM PROOF) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 224.4 Tm
+(d3\075d1\053d2\056 Nonneg y simetria inmediatas\056 Identity\072 suma 0 implica ambas 0 \055\076 x\075y\056 Triangle\072 d1xz\053d2xz \074\075) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 219.95 Tm
+(d1xy\053d1yz\053d2xy\053d2yz\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 207.8 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 209.2 Tm
+(LONG LONG) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 206.3 Tm
+(Cuentas de substrings\054 pares de nodos\054 sumas LCP\054 caminos\072 hasta O\050n\1362\051\056 Usar 64\055bit en explicacion\056) Tj
+T*
+ET
+0.94902 0.94902 0.94902 rg
+n
+631.2756 194.15 204.378 6 re
+f*
+0 0 0 rg
+BT
+/F2-0 4.55 Tf
+5.46 TL
+ET
+BT
+1 0 0 1 632.2756 195.55 Tm
+(FINAL TRIAGE) Tj
+T*
+ET
+BT
+/F1-0 4.05 Tf
+4.86 TL
+ET
+BT
+1 0 0 1 632.2756 192.65 Tm
+(Si pregunta strings confirmada\072 escribe SA\057rank\057LCP aunque no recuerdes codigo\056 Si pregunta dynamic\072 intenta) Tj
+T*
+ET
+BT
+1 0 0 1 632.2756 188.2 Tm
+(offline rollback\056 Si integer\072 define modelo y compara vEB\057Yfast\057radix\056) Tj
+T*
+ET
+Q
+
+
+endstream
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000120 00000 n 
+0000000169 00000 n 
+0000000424 00000 n 
+0000019812 00000 n 
+0000019919 00000 n 
+0000020026 00000 n 
+0000020138 00000 n 
+0000020250 00000 n 
+0000020507 00000 n 
+trailer
+<<
+/Size 12
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+38537
+%%EOF
