@@ -1,0 +1,808 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+
+\newcommand{\bigO}{O}
+\newcommand{\RMQ}{\operatorname{RMQ}}
+\newcommand{\LCA}{\operatorname{LCA}}
+\newcommand{\LA}{\operatorname{LA}}
+\newcommand{\SA}{\operatorname{SA}}
+\newcommand{\LCP}{\operatorname{LCP}}
+\newcommand{\rankv}{\operatorname{rank}}
+\newcommand{\Sub}{\operatorname{Sub}}
+\newcommand{\Suf}{\operatorname{Suf}}
+\newcommand{\Pref}{\operatorname{Pref}}
+\newcommand{\tin}{\operatorname{tin}}
+\newcommand{\tout}{\operatorname{tout}}
+
+\title{Static Trees, RMQ y Strings para el Final de EDA\\
+\large Guia de teoria y clasificacion de problemas basada en los slides locales}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Como usar esta guia}
+Esta guia esta hecha para estudiar rapido, no para leer pasivamente los slides.
+El examen es a papel y los problemas son estilo Codeforces/Yosupo, pero la
+respuesta esperada suele ser teorica: idea, estructura, pseudocodigo,
+correctitud y complejidad. Por eso, para cada tema se enfatiza:
+\begin{itemize}[leftmargin=*]
+\item que problema reconoce la estructura;
+\item que estructura usar;
+\item que invariante/proof escribir;
+\item que complejidad cerrar.
+\end{itemize}
+
+La carpeta fuente es \texttt{statics and strings/}. Los PDFs cubiertos son:
+\begin{itemize}[leftmargin=*]
+\item \texttt{eda\_slides\_08\_rmq.pdf}: static trees, RMQ, LCA, level ancestor.
+\item \texttt{Estructuras\_de\_Datos\_Avanzadas\_\_\_Strings\_I.pdf}: RMQ/LCA y pattern matching.
+\item \texttt{Estructuras\_de\_Datos\_Avanzadas\_\_\_Strings\_II.pdf}: suffix array, DC3, SA-IS.
+\item \texttt{CS3014\_\_\_Strings.pdf}: nota larga de suffix array, Manber--Myers, DC3, Ko-Aluru/SAIS.
+\end{itemize}
+
+\tableofcontents
+\newpage
+
+\section{Mapa mental para clasificar problemas}
+
+\subsection{Primera pregunta: es array, arbol o string?}
+Antes de pensar en algoritmos, clasifica el objeto principal:
+\begin{center}
+\begin{tabular}{p{0.24\linewidth}p{0.34\linewidth}p{0.32\linewidth}}
+\toprule
+Objeto & Frases tipicas & Estructuras candidatas \\
+\midrule
+Array estatico & rangos, minimo, maximo, no hay updates & Sparse table, RMQ lineal macro/micro \\
+Arbol estatico & LCA, ancestro, camino, subarbol & Euler tour, binary lifting, RMQ, HLD conceptual \\
+String texto fijo & buscar patrones, contar ocurrencias, subcadenas & Suffix array, LCP, RMQ sobre LCP \\
+Muchos patrones & varios patrones contra un texto & Aho-Corasick o suffix array por intervalos \\
+Substrings ordenadas & comparar/ordenar muchas subcadenas & SA + rank + LCP + RMQ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Segunda pregunta: hay updates?}
+Los temas de esta carpeta son principalmente estaticos. Si el input no cambia,
+preprocesa fuerte. Si hay updates, cuidado:
+\begin{itemize}[leftmargin=*]
+\item Array con updates: ya no basta sparse table; piensa segment tree.
+\item Arbol fijo con path queries: HLD + segment tree puede aparecer.
+\item String fijo con muchas queries: suffix array sirve.
+\item String dinamico: no es el foco de estos slides.
+\end{itemize}
+
+\subsection{Tercera pregunta: la consulta es por rango, camino o prefijo?}
+\begin{itemize}[leftmargin=*]
+\item Rango en array: sparse table/RMQ.
+\item Camino en arbol: LCA, HLD o transformar a RMQ.
+\item Subarbol: Euler tour convierte a intervalo.
+\item Patron en string: intervalo contiguo en suffix array.
+\item Comparar dos substrings: LCP entre sufijos + RMQ sobre LCP.
+\end{itemize}
+
+\subsection{Checklist de respuesta de examen}
+Para casi cualquier problema de estos temas escribe:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Modelo del problema.} Que se preprocesa y que se consulta.
+\item \textbf{Estructura.} Sparse table, Cartesian tree, Euler tour, SA, LCP, etc.
+\item \textbf{Invariante.} Que significa cada arreglo/tabla.
+\item \textbf{Consulta.} Como se responde paso a paso.
+\item \textbf{Correctitud.} Por que cubre todos los casos.
+\item \textbf{Complejidad.} Preprocesamiento, query, espacio.
+\end{enumerate}
+
+\newpage
+\section{RMQ en arrays estaticos}
+
+\subsection{Definicion}
+El problema \textbf{Range Minimum Query} recibe un arreglo fijo $A[0..n-1]$.
+Una consulta $\RMQ(l,r)$ pide el indice o valor minimo en:
+\[
+A[l], A[l+1], \ldots, A[r].
+\]
+El slide de RMQ enfatiza tres metas:
+\begin{itemize}[leftmargin=*]
+\item construccion $\bigO(n\log n)$ y query $\bigO(1)$;
+\item construccion $\bigO(n)$ y query $\bigO(\log n)$;
+\item construccion $\bigO(n)$ y query $\bigO(1)$.
+\end{itemize}
+
+\subsection{Sparse table: la version que debes dominar}
+La sparse table guarda respuestas para bloques de longitud potencia de dos:
+\[
+st[k][i]=\min(A[i],\ldots,A[i+2^k-1]).
+\]
+La transicion:
+\[
+st[k][i]=\min(st[k-1][i], st[k-1][i+2^{k-1}]).
+\]
+
+\subsubsection*{Consulta}
+Para responder $[l,r]$:
+\[
+k=\lfloor \log_2(r-l+1)\rfloor.
+\]
+Usas dos bloques de longitud $2^k$:
+\[
+[l,l+2^k-1]\quad\text{y}\quad[r-2^k+1,r].
+\]
+La respuesta:
+\[
+\min(st[k][l], st[k][r-2^k+1]).
+\]
+
+\subsubsection*{Por que funciona}
+Los dos bloques cubren todo el intervalo. Pueden solaparse, pero eso no importa
+porque $\min$ es idempotente:
+\[
+\min(x,x)=x.
+\]
+Este argumento es el que debes escribir en examen.
+
+\subsubsection*{Complejidad}
+\[
+\text{Preproceso } \bigO(n\log n), \quad
+\text{query } \bigO(1), \quad
+\text{espacio } \bigO(n\log n).
+\]
+
+\subsection{Cuando sparse table NO sirve}
+Sparse table no soporta updates faciles. Si el problema dice:
+\begin{itemize}[leftmargin=*]
+\item cambia $A[i]$;
+\item suma en rango;
+\item asigna valores;
+\end{itemize}
+entonces piensa en segment tree, no en sparse table. Sparse table es para
+datos estaticos y operaciones idempotentes como min/max/gcd.
+
+\subsection{RMQ lineal: macro/micro bloques}
+Los slides de static trees mencionan la meta optima $\bigO(n)$ espacio y
+$\bigO(1)$ query. La idea:
+\begin{enumerate}[leftmargin=*]
+\item Partir el arreglo en bloques de tamano $b=\frac12\log n$.
+\item Macroestructura: sparse table sobre minimos de bloques.
+\item Microestructura: precomputar respuestas dentro de cada forma de bloque.
+\end{enumerate}
+En $\pm 1$ RMQ, cada bloque tiene pocas formas posibles: $2^{b-1}=O(\sqrt n)$.
+Por eso se pueden precomputar tablas internas en $o(n)$ espacio.
+
+\subsection{Hint de clasificacion}
+Si ves:
+\begin{itemize}[leftmargin=*]
+\item ``static RMQ'';
+\item ``range minimum, no updates'';
+\item ``preprocess once, many queries'';
+\end{itemize}
+usa sparse table salvo que pidan explicitamente espacio lineal. Si piden
+optimalidad teorica, menciona macro/micro.
+
+\newpage
+\section{Cartesian trees: puente entre RMQ y LCA}
+
+\subsection{Definicion}
+El Cartesian tree de un arreglo $A$ es un arbol binario que cumple:
+\begin{itemize}[leftmargin=*]
+\item propiedad de heap: la raiz es el minimo del arreglo;
+\item inorder traversal preserva el orden de indices;
+\item el subarbol izquierdo se construye con elementos a la izquierda del minimo;
+\item el subarbol derecho con elementos a la derecha.
+\end{itemize}
+
+\subsection{Identidad clave}
+Para indices $i\le j$:
+\[
+\RMQ_A(i,j) = \LCA_T(i,j)
+\]
+donde $T$ es el Cartesian tree.
+
+\subsection{Correctitud}
+El minimo de $A[i..j]$ es el elemento de menor valor entre esos indices. En el
+Cartesian tree, por la propiedad heap, ese elemento queda por encima de todos
+los elementos del intervalo. Por la propiedad inorder, separa exactamente el
+intervalo en izquierda y derecha. Por eso es el ancestro comun mas bajo de los
+nodos $i$ y $j$.
+
+\subsection{Construccion lineal}
+El slide menciona el algoritmo con \textbf{right spine}:
+\begin{enumerate}[leftmargin=*]
+\item Escanear el arreglo de izquierda a derecha.
+\item Mantener la espina derecha del Cartesian tree parcial.
+\item Para insertar $A[i]$, subir por la espina hasta encontrar un nodo con valor menor.
+\item El antiguo subarbol desplazado pasa a ser hijo izquierdo del nuevo nodo.
+\end{enumerate}
+Cada nodo entra y sale de la espina a lo mucho una vez, por eso el costo es
+amortizado $\bigO(n)$.
+
+\subsection{Hint de clasificacion}
+Si un problema te pide demostrar equivalencia entre RMQ y LCA, o construir una
+estructura optima para RMQ, menciona Cartesian tree. No es la primera herramienta
+para implementar rapido, pero si es una herramienta teorica fuerte.
+
+\newpage
+\section{LCA y su reduccion a RMQ}
+
+\subsection{Definicion}
+El \textbf{Lowest Common Ancestor} de dos nodos $u,v$ en un arbol enraizado es
+el ancestro comun mas profundo de ambos.
+
+\subsection{Solucion simple: binary lifting}
+Preprocesas:
+\[
+up[v][j] = \text{ancestro }2^j\text{ de }v.
+\]
+Para responder:
+\begin{enumerate}[leftmargin=*]
+\item Igualas profundidades.
+\item Subes ambos nodos desde potencias grandes a pequenas hasta que sus padres
+coincidan.
+\item Ese padre es el LCA.
+\end{enumerate}
+Complejidad:
+\[
+\bigO(n\log n)\text{ preproceso},\quad \bigO(\log n)\text{ query}.
+\]
+
+\subsection{Reduccion a RMQ con Euler tour}
+Haces un Euler tour del arbol. Guardas:
+\begin{itemize}[leftmargin=*]
+\item $E$: secuencia de nodos visitados;
+\item $D$: profundidad de cada visita;
+\item $first[v]$: primera posicion de $v$ en $E$.
+\end{itemize}
+Entonces:
+\[
+\LCA(u,v)=E[\arg\min D[l..r]]
+\]
+donde:
+\[
+l=\min(first[u],first[v]),\quad r=\max(first[u],first[v]).
+\]
+
+\subsection{Propiedad $\pm 1$}
+En el Euler tour, cada paso sube o baja una arista. Por eso:
+\[
+|D[i]-D[i-1]|=1.
+\]
+El problema LCA se reduce a $\pm 1$ RMQ, que puede resolverse en $\bigO(n)$
+espacio y $\bigO(1)$ query con macro/micro.
+
+\subsection{Correctitud}
+Entre la primera aparicion de $u$ y la primera aparicion de $v$ en el Euler tour,
+el recorrido pasa por todos los nodos necesarios para ir de uno al otro en el
+DFS. El nodo de profundidad minima en ese segmento es exactamente el ancestro
+comun mas bajo. Cualquier ancestro comun esta por encima; el mas bajo es el de
+menor profundidad que aparece entre ambos.
+
+\subsection{Hint de clasificacion}
+Si ves:
+\begin{itemize}[leftmargin=*]
+\item distancia en arbol;
+\item camino entre dos nodos;
+\item ancestro comun;
+\item max/min edge on path con arbol fijo;
+\end{itemize}
+probablemente necesitas LCA. Para distancias:
+\[
+\operatorname{dist}(u,v)=depth[u]+depth[v]-2depth[\LCA(u,v)].
+\]
+
+\newpage
+\section{Level Ancestor}
+
+\subsection{Definicion}
+La consulta \textbf{Level Ancestor} pide: dado un nodo $v$ y un nivel/profundidad
+$d$, encontrar el ancestro de $v$ que esta a profundidad $d$. Equivalentemente,
+subir $k$ aristas desde $v$.
+
+\subsection{Soluciones vistas en slides}
+El slide compara:
+\begin{center}
+\begin{tabular}{p{0.34\linewidth}p{0.24\linewidth}p{0.30\linewidth}}
+\toprule
+Metodo & Query & Idea \\
+\midrule
+Tabla completa & $\bigO(1)$ & demasiado espacio, $\bigO(n^2)$ \\
+Jump pointers & $\bigO(\log n)$ & binary lifting \\
+Longest path decomposition & $\bigO(\sqrt n)$ & caminos raiz-hoja \\
+Ladder decomposition & $\bigO(\log n)$ & caminos extendidos \\
+Macro/micro Dietz & $\bigO(1)$ & leaf trimming + Four Russians \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Que debes saber para examen}
+Domina binary lifting. Si preguntan optimalidad, menciona que existen versiones
+lineales con query constante, pero no intentes reconstruir todos los detalles si
+no es necesario.
+
+\subsection{Hint de clasificacion}
+Si el problema pregunta:
+\begin{itemize}[leftmargin=*]
+\item ``k-th ancestor'';
+\item ``subir k niveles'';
+\item ``ancestro en profundidad h'';
+\end{itemize}
+usa Level Ancestor/binary lifting.
+
+\newpage
+\section{Strings: notacion basica}
+
+\subsection{Conceptos}
+Los slides definen:
+\begin{itemize}[leftmargin=*]
+\item Alfabeto $\Sigma$.
+\item Cadena $S$ de longitud $|S|$.
+\item Subcadena $S[i,j]$.
+\item Prefijo $\Pref(S,i)=S[0,i]$.
+\item Sufijo $\Suf(S,i)=S[i,|S|-1]$.
+\item LCP: prefijo comun mas largo entre dos cadenas.
+\item Sentinela \texttt{\$}: caracter menor que todos que aparece al final.
+\end{itemize}
+
+\subsection{Por que importa el sentinela}
+El sentinela evita casos molestos donde un sufijo es prefijo de otro. Si
+\texttt{\$} es menor que todo, entonces las comparaciones lexicograficas son
+totales y limpias.
+
+\subsection{Orden lexicografico}
+Dos cadenas se comparan por el primer caracter donde difieren. Si una termina
+antes y es prefijo propio de la otra, la mas corta es menor. Esta definicion es
+la base de suffix array.
+
+\subsection{Hint de clasificacion}
+Si el problema habla de:
+\begin{itemize}[leftmargin=*]
+\item patron;
+\item subcadena;
+\item sufijo;
+\item prefijo comun;
+\item orden lexicografico;
+\item substring repetida;
+\end{itemize}
+debes pensar inmediatamente en suffix array, LCP, KMP/Z, o Aho-Corasick.
+
+\newpage
+\section{Suffix array}
+
+\subsection{Definicion}
+El suffix array de $S$ es una permutacion $A$ de posiciones:
+\[
+\Suf(S,A_i) < \Suf(S,A_{i+1})
+\]
+para todo $i$. Guarda exactamente $n$ enteros, por eso es mas compacto que un
+suffix tree.
+
+\subsection{Por que sirve}
+Ordenar sufijos convierte busqueda de patrones en busqueda binaria:
+\begin{itemize}[leftmargin=*]
+\item Un patron $P$ aparece donde algun sufijo empieza con $P$.
+\item Todos esos sufijos estan consecutivos en el suffix array.
+\item Por tanto, las ocurrencias son un intervalo en $\SA$.
+\end{itemize}
+
+\subsection{Aplicaciones de examen}
+\begin{itemize}[leftmargin=*]
+\item Buscar si $P$ aparece en $S$.
+\item Contar ocurrencias de $P$.
+\item Listar posiciones donde aparece $P$.
+\item Contar subcadenas distintas.
+\item Longest common substring.
+\item Comparar/ordenar substrings.
+\item Encontrar repeticiones usando LCP.
+\end{itemize}
+
+\subsection{Hint de clasificacion}
+Si el texto es fijo y hay muchas consultas de patrones, usa suffix array. Si hay
+muchos patrones y quieres procesarlos todos simultaneamente, Aho-Corasick puede
+ser mejor. Si necesitas ordenar substrings, suffix array + LCP + RMQ.
+
+\newpage
+\section{Manber--Myers: construccion $\bigO(n\log n)$}
+
+\subsection{Idea central}
+Manber--Myers ordena sufijos por prefijos de longitud creciente:
+\[
+1,2,4,8,\ldots
+\]
+Mantiene $rank[i]$: clase lexicografica del prefijo de longitud actual que
+empieza en $i$.
+
+\subsection{Paso inductivo}
+Si ya conoces ranks para longitud $2^k$, entonces el prefijo de longitud
+$2^{k+1}$ de $i$ queda descrito por:
+\[
+(rank[i], rank[i+2^k]).
+\]
+Ordenar estos pares ordena por longitud doble.
+
+\subsection{Pseudocodigo teorico}
+\begin{enumerate}[leftmargin=*]
+\item Agrega sentinela.
+\item Ordena posiciones por caracter y asigna ranks iniciales.
+\item Para $len=1,2,4,\ldots$:
+\begin{enumerate}
+\item Ordena posiciones por $(rank[i],rank[i+len])$.
+\item Reasigna nuevos ranks.
+\end{enumerate}
+\item Cuando $len\ge n$, el orden es el suffix array.
+\end{enumerate}
+
+\subsection{Optimizacion del slide}
+El slide explica que se puede evitar ordenar por el segundo componente desde
+cero. Como las posiciones ya estan ordenadas por la segunda mitad, se desplazan
+indices y se usa counting sort estable por el primer rank. Esto mantiene
+$\bigO(n)$ por ronda.
+
+\subsection{Correctitud}
+Por induccion. En la ronda $k$, $rank[i]$ representa correctamente el orden del
+prefijo de longitud $2^k$. Dos prefijos de longitud $2^{k+1}$ se comparan por
+su primera mitad; si empatan, por su segunda mitad. Eso es exactamente comparar
+el par de ranks.
+
+\subsection{Complejidad}
+$\bigO(\log n)$ rondas. Cada una $\bigO(n)$ con counting/radix sort. Total:
+\[
+\bigO(n\log n)
+\]
+tiempo y $\bigO(n)$ o $\bigO(n\log n)$ espacio segun si guardas todos los niveles.
+
+\newpage
+\section{LCP array y RMQ sobre LCP}
+
+\subsection{Definicion}
+Para suffix array $\SA$:
+\[
+\LCP[i]=\operatorname{lcp}(S[\SA[i-1]..],S[\SA[i]..]).
+\]
+Mide cuanto comparten sufijos vecinos.
+
+\subsection{LCP arbitrario entre dos sufijos}
+Si los sufijos que empiezan en $i$ y $j$ estan en posiciones $a$ y $b$ del
+suffix array, con $a<b$, entonces:
+\[
+\operatorname{lcp}(i,j)=\min(\LCP[a+1],\ldots,\LCP[b]).
+\]
+Esto es una RMQ sobre el arreglo LCP.
+
+\subsection{Correctitud}
+Entre dos sufijos en orden lexicografico, todos los sufijos intermedios comparten
+al menos el prefijo comun minimo del intervalo. El primer punto donde alguno
+difiere queda capturado por el minimo LCP entre vecinos. Por eso el LCP de dos
+sufijos cualesquiera es el minimo LCP en el rango entre sus posiciones.
+
+\subsection{Usos}
+\begin{itemize}[leftmargin=*]
+\item Comparar substrings en $\bigO(1)$.
+\item Encontrar repeticiones.
+\item Longest common substring.
+\item Ordenar substrings.
+\item Resolver problemas donde muchas queries piden igualdad de substrings.
+\end{itemize}
+
+\subsection{Hint de clasificacion}
+Si ves comparaciones repetidas de substrings, no compares caracter por caracter.
+Preprocesa suffix array, rank, LCP y RMQ.
+
+\newpage
+\section{Pattern matching}
+
+\subsection{Dos escenarios de los slides}
+Los slides separan:
+\begin{itemize}[leftmargin=*]
+\item Patron conocido, texto por conocer: KMP, Z, Rabin-Karp, Aho-Corasick.
+\item Texto conocido, patron por conocer: suffix array, suffix tree, suffix automaton.
+\end{itemize}
+
+\subsection{Texto fijo + patrones}
+Construye suffix array de $S$. Para patron $P$, busca el intervalo de sufijos
+que empiezan con $P$. Dos busquedas binarias bastan.
+
+\subsection{Muchos patrones}
+Si todos los patrones se conocen antes y quieres recorrer el texto una vez,
+Aho-Corasick es natural. Si el examen esta en el bloque de suffix array, explica
+la solucion con suffix array.
+
+\subsection{Correctitud del intervalo}
+Todos los sufijos con prefijo $P$ forman un bloque lexicografico. Si un sufijo
+sin prefijo $P$ estuviera dentro, diferiria en algun caracter y romperia el orden
+del bloque. Por eso el bloque encontrado por binary search contiene exactamente
+las ocurrencias.
+
+\subsection{Complejidad}
+Simple:
+\[
+\bigO(n\log n)\text{ construir},\quad \bigO(|P|\log n)\text{ por patron}.
+\]
+Con LCP optimizado se puede mejorar, pero en papel la idea del intervalo es lo
+mas importante.
+
+\newpage
+\section{Contar subcadenas distintas}
+
+\subsection{Formula}
+Un string de longitud $n$ tiene:
+\[
+\frac{n(n+1)}2
+\]
+subcadenas contando repeticiones. Para contar distintas:
+\[
+\#distinct = \frac{n(n+1)}2 - \sum_i \LCP[i].
+\]
+
+\subsection{Por que funciona}
+Cada sufijo aporta todos sus prefijos como subcadenas. Si procesas sufijos en
+orden de suffix array, el sufijo actual comparte $\LCP[i]$ prefijos con el
+anterior. Esos prefijos ya fueron contados. Por tanto, el sufijo aporta:
+\[
+(n-\SA[i])-\LCP[i]
+\]
+nuevas subcadenas.
+
+\subsection{Hint de clasificacion}
+Si el problema pide:
+\begin{itemize}[leftmargin=*]
+\item numero de substrings distintas;
+\item cuantas subcadenas diferentes tiene $S$;
+\item contar repetidas vs unicas;
+\end{itemize}
+usa suffix array + LCP y esta formula.
+
+\subsection{Complejidad}
+Construir $\SA+\LCP$ domina. Luego sumar LCP es $\bigO(n)$.
+
+\newpage
+\section{Longest common substring}
+
+\subsection{Problema}
+Dadas cadenas $A$ y $B$, encontrar la subcadena mas larga que aparece en ambas.
+
+\subsection{Algoritmo}
+Concatena:
+\[
+T=A\#B\$
+\]
+con separadores que no aparecen en las cadenas. Construye $\SA$ y $\LCP$ de $T$.
+Recorre pares vecinos en $\SA$. Si un sufijo viene de $A$ y el otro de $B$,
+actualiza respuesta con su LCP.
+
+\subsection{Correctitud}
+Si una subcadena $X$ aparece en ambas cadenas, entonces hay un sufijo de $A$ y
+uno de $B$ que tienen prefijo $X$. Todos los sufijos con prefijo $X$ estan juntos
+en $\SA$. Dentro de ese bloque debe haber algun par vecino de origen distinto.
+Su LCP es al menos $|X|$.
+
+\subsection{Complejidad}
+$\bigO(n\log n)$ con Manber--Myers o $\bigO(n)$ con DC3/SA-IS para construir.
+Recorrido final $\bigO(n)$.
+
+\newpage
+\section{Ordenar y comparar subcadenas}
+
+\subsection{Problema}
+Muchas veces te dan consultas con substrings $S[l,r]$ y debes compararlas,
+ordenarlas o decidir igualdad.
+
+\subsection{Estructura}
+Preprocesa:
+\begin{itemize}[leftmargin=*]
+\item $\SA$;
+\item rank inverso de cada sufijo;
+\item $\LCP$;
+\item RMQ sobre $\LCP$.
+\end{itemize}
+
+\subsection{Comparacion}
+Para comparar $S[l_1,r_1]$ y $S[l_2,r_2]$:
+\begin{enumerate}[leftmargin=*]
+\item Calcula $x=\operatorname{lcp}(l_1,l_2)$ con RMQ sobre LCP.
+\item Si $x$ cubre la longitud menor, gana la substring mas corta.
+\item Si no, compara $S[l_1+x]$ y $S[l_2+x]$.
+\end{enumerate}
+
+\subsection{Complejidad}
+Preprocesamiento $\bigO(n\log n)$ con sparse table sobre LCP. Cada comparacion
+$\bigO(1)$. Ordenar $q$ substrings cuesta $\bigO(q\log q)$ comparaciones.
+
+\newpage
+\section{DC3}
+
+\subsection{Idea}
+DC3 construye suffix array en tiempo lineal. Divide posiciones por residuo
+modulo 3:
+\[
+S_0=\{i:i\equiv0\},\quad S_1=\{i:i\equiv1\},\quad S_2=\{i:i\equiv2\}.
+\]
+Primero ordena recursivamente sufijos de $S_1\cup S_2$. Luego deduce $S_0$ y
+hace merge.
+
+\subsection{Por que sirve}
+El teorema del slide dice: si sabes el orden de sufijos en $S_1$ y $S_2$,
+puedes deducir el orden de todos. Para comparar un sufijo de $S_0$ con otro,
+usas caracteres iniciales y ranks ya conocidos.
+
+\subsection{Pasos}
+\begin{enumerate}[leftmargin=*]
+\item Formar ternas de caracteres para posiciones en $S_1$ y $S_2$.
+\item Ordenar ternas con radix sort y asignar ranks.
+\item Si hay empates, resolver recursivamente la cadena de ranks.
+\item Ordenar $S_0$ usando $(S[i],rank[i+1])$.
+\item Mezclar linealmente $S_0$ con $S_1\cup S_2$.
+\end{enumerate}
+
+\subsection{Complejidad}
+La recurrencia:
+\[
+T(n)=T(2n/3)+\bigO(n)
+\]
+da:
+\[
+T(n)=\bigO(n).
+\]
+
+\subsection{Hint de examen}
+No intentes memorizar implementacion. Aprende:
+\begin{itemize}[leftmargin=*]
+\item particion modulo 3;
+\item ordenar $2n/3$ posiciones recursivamente;
+\item usar ranks para comparar en $\bigO(1)$;
+\item recurrencia lineal.
+\end{itemize}
+
+\newpage
+\section{SA-IS y clasificacion S/L}
+
+\subsection{Idea}
+SA-IS clasifica sufijos en tipo S y tipo L:
+\begin{itemize}[leftmargin=*]
+\item tipo S si el sufijo actual es menor que el siguiente;
+\item tipo L si es mayor que el siguiente;
+\item LMS si hay transicion de L a S.
+\end{itemize}
+
+\subsection{Teorema importante}
+Si sabes el orden relativo de los sufijos LMS, puedes inducir el orden de todos
+los sufijos. Por eso SA-IS:
+\begin{enumerate}[leftmargin=*]
+\item clasifica S/L;
+\item ordena LMS;
+\item induce L de izquierda a derecha;
+\item induce S de derecha a izquierda;
+\item si hace falta, recurre sobre nombres de LMS substrings.
+\end{enumerate}
+
+\subsection{Por que es lineal}
+Cada fase de induccion escanea buckets una cantidad constante de veces. El
+problema recursivo tiene tamano a lo mucho el numero de LMS, que es a lo mucho
+$n/2$. Por tanto el total es lineal.
+
+\subsection{Hint de examen}
+SA-IS es mas conceptual que implementable a papel. Si preguntan, escribe:
+clasificacion S/L, LMS, induced sorting, recursion sobre LMS names, y
+complejidad $\bigO(n)$.
+
+\newpage
+\section{Bordes, KMP y periodicidad}
+
+\subsection{Bordes}
+Un borde de $S$ es una cadena que es prefijo y sufijo. La funcion prefijo de KMP:
+\[
+\pi[i]=\text{longitud del mayor borde de }S[0..i].
+\]
+Los bordes de todo $S$ se obtienen siguiendo:
+\[
+k=\pi[n-1],\quad k=\pi[k-1],\quad \ldots
+\]
+
+\subsection{Periodicidad}
+$S$ tiene periodo $p$ si:
+\[
+S[i]=S[i+p]
+\]
+cuando ambas posiciones existen. Para substrings, puedes verificar igualdad de
+zonas con LCP:
+\[
+\operatorname{lcp}(l,l+p)\ge len-p.
+\]
+
+\subsection{Hint de clasificacion}
+Si dice:
+\begin{itemize}[leftmargin=*]
+\item borde;
+\item prefijo que tambien es sufijo;
+\item periodo;
+\item repeticion exacta;
+\end{itemize}
+piensa primero en KMP/Z. Si hay muchas consultas sobre substrings arbitrarias,
+combina con suffix array + LCP.
+
+\newpage
+\section{Problemas tipo examen y estructura a usar}
+
+\begin{center}
+\begin{tabular}{p{0.32\linewidth}p{0.32\linewidth}p{0.25\linewidth}}
+\toprule
+Si el problema dice & Usa & Justificacion \\
+\midrule
+Minimo en rango estatico & Sparse table / RMQ & Datos no cambian \\
+LCA de muchos pares & Euler tour + RMQ o binary lifting & Arbol fijo \\
+Distancia entre nodos & LCA & Formula con profundidades \\
+Forzar arista en MST & MST + max edge path & Propiedad del ciclo \\
+Buscar patron en texto fijo & Suffix array & Ocurrencias son intervalo \\
+Contar subcadenas distintas & SA + LCP & Duplicados medidos por LCP \\
+Longest common substring & SA de $A\#B$ + LCP & Pares vecinos de origen distinto \\
+Ordenar substrings & SA + LCP + RMQ & Comparacion en $\bigO(1)$ \\
+Bordes/periodos & KMP/Z, LCP si hay queries & Prefijo-sufijo/repeticion \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+\section{Mapa de slides cubiertos}
+
+\subsection*{eda\_slides\_08\_rmq.pdf}
+\begin{itemize}[leftmargin=*]
+\item Pages 1--2: Static Trees overview.
+\item Pages 3--6: objetivos: RMQ, LCA, Level Ancestor con preproceso lineal y query constante.
+\item Pages 11--12: definicion formal de RMQ.
+\item Pages 13--16: Cartesian trees y reduccion LCA a $\pm1$ RMQ via Euler tour.
+\item Pages 17--18: solucion RMQ con macro/micro bloques.
+\item Pages 19--20: Level Ancestor y comparacion de tecnicas.
+\item Pages 22--24: resumen y relacion con segment tree/Fenwick.
+\end{itemize}
+
+\subsection*{Estructuras\_de\_Datos\_Avanzadas\_\_\_Strings\_I.pdf}
+\begin{itemize}[leftmargin=*]
+\item Pages 2--5: objetivos: RMQ, LCA y pattern matching.
+\item Pages 6--11: RMQ estatico y soluciones de preprocesamiento/query.
+\item Pages 12--17: LCA con binary lifting y reducciones.
+\item Pages 19--24: definicion de pattern matching.
+\item Pages 25--30: escenarios: patron fijo vs texto fijo; KMP/Z/Rabin-Karp/Aho-Corasick vs suffix array/tree/automaton.
+\item Pages 31--34: resumen de sesion.
+\end{itemize}
+
+\subsection*{Estructuras\_de\_Datos\_Avanzadas\_\_\_Strings\_II.pdf}
+\begin{itemize}[leftmargin=*]
+\item Pages 2--5: strings y suffix array.
+\item Pages 12--18: definicion de suffix array y algoritmos SACA.
+\item Pages 20--44: DC3: particion modulo 3, ranks, recursion, merge, recurrencia lineal.
+\item Pages 45--60: SA-IS: tipos S/L, LMS, induced sorting.
+\item Pages 61--80: resumen/ejemplos y construccion lineal conceptual.
+\end{itemize}
+
+\subsection*{CS3014\_\_\_Strings.pdf}
+\begin{itemize}[leftmargin=*]
+\item Page 1: notacion formal de strings, prefijos, sufijos, LCP, sentinela.
+\item Pages 2--7: suffix array y Manber--Myers.
+\item Pages 8--10: DC3 con pseudocodigo y merge.
+\item Pages 10--18: clasificacion de sufijos, induced sorting, Ko-Aluru/SAIS.
+\item Pages 19--23: referencias, cierre y detalles de implementacion teorica.
+\end{itemize}
+
+\input{slide_index_detail.tex}
+
+\section*{Cierre}
+Si tienes poco tiempo, aprende en este orden:
+\begin{enumerate}[leftmargin=*]
+\item Sparse table y RMQ.
+\item LCA con binary lifting y Euler tour.
+\item Suffix array y LCP.
+\item Pattern matching como intervalo en suffix array.
+\item Subcadenas distintas y longest common substring.
+\item LCP arbitrario con RMQ.
+\item Ideas de DC3/SA-IS solo para explicar construccion lineal.
+\end{enumerate}
+
+\end{document}
