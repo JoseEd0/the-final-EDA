@@ -390,7 +390,25 @@ Dynamic forest con agregados en camino. Preferred paths guardadas en splay. \tex
 ``El arbol es estatico y la query es sobre un camino ordenado, por eso uso HLD. Linealizo el arbol y guardo, para cada caracter, las posiciones donde aparece. Descompongo el camino \(U\to V\) en segmentos HLD en el orden real. Recorro la cadena \(S\) y busco greedily la primera aparicion valida del caracter actual dentro de los segmentos usando binary search. Greedy es correcto porque tomar una aparicion mas temprana deja un sufijo del camino igual o mas largo para los caracteres restantes. Complejidad \(\bigO((|S|+\log n)\log n)\).''}
 
 \blk{Modelo: metricas}{
-``Para probar que \(d\) es metrica verifico no negatividad, identidad, simetria y triangular. Para refutar, basta un contraejemplo, usualmente a triangular. Ejemplo: \((x-y)^2\) falla con \(0,1,2\), porque \(4>1+1\). La suma de metricas es metrica porque cada propiedad se preserva; la triangular sale sumando las dos desigualdades triangulares. Funciones como \(L_1,L_2,L_\infty\), pesos positivos de \(L_1\), \(\sqrt{|x-y|}\), \(\min(1,|x-y|)\) son metricas por desigualdades conocidas/subaditividad.''}
+``Para probar metrica: \(d\ge0\), \(d=0\Leftrightarrow x=y\), simetria, triangular. Para refutar, basta contraejemplo. Suma de metricas es metrica: se suman las triangulares. \((x-y)^2\) falla con \(0,1,2\): \(4>1+1\). Si \(d\) es metrica y \(f\) es creciente/subaditiva con \(f(0)=0\), entonces \(f(d)\) es metrica.''}
+
+\blk{Metricas lista: respuestas rapidas}{
+\begin{tabular}{@{}p{0.69\linewidth}p{0.26\linewidth}@{}}
+\((x-y)^2\) & No: triangle\\
+\(|x-y|+|x^2-y^2|\) & Si: met+pseudo\\
+\(\max(|x_1-y_1|,|x_2-y_2|)\) & Si: \(L_\infty\)\\
+\(\sqrt{|x-y|}\) & Si: subaditiva\\
+\(\ln(1+|x-y|)\) & Si: log subadd\\
+\(\frac{|x-y|}{1+|x-y|}\) & Si: subaditiva\\
+\(\min(1,|x-y|)\) & Si: truncada\\
+\(|x-y|+|x^3-y^3|\) & Si: met+pseudo\\
+\(|x_1-y_1|+|x_2-y_2|\) & Si: \(L_1\)\\
+\(2|x_1-y_1|+3|x_2-y_2|\) & Si: pesos \(>0\)\\
+\(\sqrt{(x_1-y_1)^2+(x_2-y_2)^2}\) & Si: \(L_2\)\\
+\(|x_1-y_1|+|x_2-y_2|+|x_3-y_3|\) & Si: \(L_1\)\\
+\(|x-y|+\min(1,|x-y|)\) & Si: suma\\
+\end{tabular}
+\textbf{Pseudo-metrica:} \(|f(x)-f(y)|\) cumple triangular, pero puede tener distancia 0 con \(x\ne y\). Sumada con \(|x-y|\) queda metrica.}
 
 \blk{Tabla ultracorta de complejidades}{
 \begin{tabular}{@{}p{0.55\linewidth}p{0.40\linewidth}@{}}
