@@ -1,0 +1,897 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+
+\newcommand{\bigO}{O}
+\newcommand{\LCA}{\operatorname{LCA}}
+\newcommand{\depth}{\operatorname{depth}}
+\newcommand{\size}{\operatorname{size}}
+\newcommand{\tin}{\operatorname{in}}
+\newcommand{\tout}{\operatorname{out}}
+\newcommand{\find}{\operatorname{find}}
+\newcommand{\linkop}{\operatorname{link}}
+\newcommand{\cutop}{\operatorname{cut}}
+\newcommand{\access}{\operatorname{access}}
+\newcommand{\connected}{\operatorname{connected}}
+
+\title{Dynamic Graphs, HLD y Dynamic Trees para el Final de EDA\\
+\large Guia desde cero, orientada a resolver problemas teoricos}
+\author{}
+\date{}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\section*{Como usar esta guia}
+Esta guia esta basada en los PDFs de la carpeta \texttt{dinamic/}. Esta escrita
+como si no supieras nada del tema: primero define el vocabulario, luego explica
+la estructura, luego muestra como reconocer problemas y como justificar
+correctitud/complejidad en papel.
+
+PDFs cubiertos:
+\begin{itemize}[leftmargin=*]
+\item \texttt{CS3014\_\_\_Heavy\_Light\_Decomposition.pdf}: HLD, path queries,
+path updates, subtree updates y small-to-large trick.
+\item \texttt{eda\_slides\_08\_dynamic\_graph.pdf}: dynamic tree problem,
+preferred paths, auxiliary splay trees, link-cut trees y analisis con HLD.
+\item \texttt{eda\_slides\_09\_dynamic\_graph.pdf}: dynamic connectivity,
+Euler-tour trees, conectividad en grafos generales y lower bounds.
+\end{itemize}
+
+El foco del examen no es memorizar codigo. El foco es poder decir: que problema
+tengo, que estructura aplica, que invariantes mantiene, como responde queries,
+por que es correcto y cuanto cuesta.
+
+\tableofcontents
+\newpage
+
+\section{Mapa mental para clasificar problemas dinamicos}
+
+\subsection{Primera pregunta: que cambia?}
+Un problema dinamico es uno donde la estructura cambia en el tiempo. Antes de
+elegir un algoritmo, identifica que tipo de cambio existe:
+
+\begin{center}
+\begin{tabular}{p{0.28\linewidth}p{0.36\linewidth}p{0.26\linewidth}}
+\toprule
+Tipo & Que operaciones aparecen & Estructuras candidatas \\
+\midrule
+Incremental & solo inserta aristas & DSU \\
+Decremental & solo borra aristas & DSU offline en reversa, estructuras decrementales \\
+Fully dynamic & inserta y borra aristas & Euler-tour trees, link-cut trees, rollback DSU offline \\
+Arbol dinamico & link/cut entre arboles & Link-cut tree, Euler-tour tree \\
+Arbol estatico con path updates & no cambia la forma, cambian valores & HLD + segment tree \\
+Subarboles en arbol estatico & consultas por subarbol & Euler tour timestamps, DSU on tree \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Segunda pregunta: el grafo siempre es bosque?}
+Esta pregunta cambia todo:
+\begin{itemize}[leftmargin=*]
+\item Si siempre es un bosque, cada componente es un arbol. Operaciones
+\texttt{link} y \texttt{cut} son naturales.
+\item Si es un grafo general, puede haber ciclos. Al borrar una arista del
+spanning forest, debes buscar una arista no-arbol que reconecte la componente.
+\item Si el problema es offline, puedes evitar estructuras complicadas usando
+segment tree sobre el tiempo + rollback DSU.
+\end{itemize}
+
+\subsection{Tercera pregunta: pide conectividad o agregados?}
+\begin{itemize}[leftmargin=*]
+\item Solo conectividad incremental: DSU.
+\item Conectividad fully dynamic online: Euler-tour trees por niveles o link-cut
+trees si el grafo se mantiene como bosque.
+\item Agregado en camino de arbol estatico: HLD + segment tree.
+\item Agregado en camino de arbol dinamico: link-cut tree.
+\item Agregado en componente con updates offline: rollback DSU con suma por
+componente.
+\end{itemize}
+
+\subsection{Checklist de respuesta de examen}
+Para cualquier problema de esta carpeta escribe:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Modelo}: arbol estatico, bosque dinamico o grafo general.
+\item \textbf{Operaciones}: link, cut, insert, delete, connected, query path,
+query subtree, update path, update vertex.
+\item \textbf{Estructura}: HLD, DSU, rollback DSU, Euler-tour tree, link-cut tree.
+\item \textbf{Invariante}: que representa cada arreglo/arbol auxiliar.
+\item \textbf{Operacion}: como se transforma una query en rangos o en splits.
+\item \textbf{Correctitud}: por que no pierdes aristas/nodos relevantes.
+\item \textbf{Complejidad}: preproceso, update, query y espacio.
+\end{enumerate}
+
+\newpage
+\section{Diccionario fundamental desde cero}
+
+\subsection{Grafo dinamico}
+Un grafo dinamico es un grafo que cambia. En vez de recibir un grafo fijo y
+responder una sola pregunta, recibes una secuencia de operaciones:
+\[
+op_1, op_2, \ldots, op_q.
+\]
+Cada operacion puede insertar una arista, borrar una arista, preguntar si dos
+vertices estan conectados o pedir algun agregado.
+
+\subsection{Conectividad}
+Dos vertices $u$ y $v$ estan conectados si existe un camino entre ellos. Una
+consulta \texttt{connected(u,v)} pregunta si $u$ y $v$ pertenecen a la misma
+componente conexa.
+
+\subsection{Componente conexa}
+Una componente conexa es un conjunto maximo de vertices donde todos estan
+conectados entre si. ``Maximo'' significa que no puedes agregar otro vertice sin
+romper la propiedad.
+
+\subsection{Bosque}
+Un bosque es un grafo sin ciclos. Cada componente conexa del bosque es un arbol.
+Muchas estructuras dinamicas primero resuelven bosques porque link/cut son mas
+faciles ahi.
+
+\subsection{Arista de arbol y arista no-arbol}
+En un grafo general puedes mantener un spanning forest. Las aristas dentro de
+ese bosque son \textbf{tree edges}. Las otras aristas son \textbf{non-tree
+edges}. Si borras una tree edge, la componente puede partirse y necesitas buscar
+una non-tree edge que vuelva a conectar ambas partes.
+
+\subsection{Online vs offline}
+Un algoritmo \textbf{online} responde cada operacion antes de ver las futuras.
+Un algoritmo \textbf{offline} conoce toda la secuencia de operaciones desde el
+inicio. Esto importa muchisimo:
+\begin{itemize}[leftmargin=*]
+\item Online fully dynamic connectivity es dificil.
+\item Offline fully dynamic connectivity se puede resolver con segment tree
+sobre el tiempo + rollback DSU.
+\end{itemize}
+
+\subsection{Amortizado}
+Una complejidad amortizada no garantiza que cada operacion individual cueste
+poco, sino que el promedio sobre una secuencia larga cuesta poco. Link-cut trees
+tienen operaciones $\bigO(\log n)$ amortizadas: algunas pueden ser mas caras,
+pero el total de muchas operaciones queda acotado.
+
+\subsection{Agregado}
+Un agregado es un valor combinado sobre un conjunto:
+\[
+\sum,\quad \min,\quad \max,\quad \gcd,\quad xor.
+\]
+Ejemplos:
+\begin{itemize}[leftmargin=*]
+\item suma de valores de una componente;
+\item maximo peso en un camino;
+\item minimo peso en el camino entre dos nodos;
+\item suma de un subarbol.
+\end{itemize}
+
+\subsection{Segment tree}
+Un segment tree mantiene informacion de intervalos de un arreglo. En esta
+carpeta aparece como complemento de HLD: HLD convierte caminos de arbol en
+pocos intervalos de un arreglo, y el segment tree responde esos intervalos.
+
+\subsection{Treap, AVL, splay y BST balanceado}
+Un BST balanceado representa una secuencia con operaciones:
+\[
+split,\quad merge,\quad insert,\quad erase,\quad aggregate.
+\]
+Euler-tour trees guardan el tour de un arbol en un BST balanceado. Link-cut
+trees guardan preferred paths en splay trees.
+
+\subsection{Splay tree}
+Un splay tree es un BST autoajustable. Su operacion clave es \texttt{splay(x)}:
+mueve $x$ a la raiz mediante rotaciones. Su garantia es amortizada. Link-cut
+trees usan splay trees para representar caminos auxiliares.
+
+\newpage
+\section{HLD: Heavy-Light Decomposition}
+
+\subsection{Que problema resuelve}
+HLD resuelve consultas y modificaciones sobre caminos en un \textbf{arbol
+estatico}. El arbol no cambia de forma. Lo que puede cambiar son valores en
+nodos o aristas.
+
+Ejemplos:
+\begin{itemize}[leftmargin=*]
+\item maximo valor en el camino $u\leadsto v$;
+\item sumar $w$ a todos los nodos del camino $u\leadsto v$;
+\item consultar suma en el camino;
+\item actualizar una arista;
+\item consultar un subarbol usando timestamps.
+\end{itemize}
+
+\subsection{Idea principal}
+Un camino arbitrario en un arbol puede ser largo y curvo. HLD parte el arbol en
+cadenas pesadas. La magia es que cualquier camino raiz-nodo cruza solo
+$\bigO(\log n)$ aristas livianas, por tanto cualquier camino entre dos nodos se
+descompone en $\bigO(\log n)$ segmentos de cadenas.
+
+Luego, cada cadena se coloca en posiciones consecutivas de un arreglo. Una query
+de camino se vuelve varias queries de intervalo.
+
+\subsection{Subtree size}
+Para cada nodo:
+\[
+\size(u)=\text{numero de nodos en el subarbol de }u.
+\]
+Se calcula con DFS:
+\[
+\size(u)=1+\sum_{v\in children(u)}\size(v).
+\]
+
+\subsection{Arista pesada y arista liviana}
+Hay dos definiciones en los slides.
+
+\subsubsection*{Definicion 1: mayor que la mitad}
+La arista $(u,v)$ es pesada si:
+\[
+2\size(v)>\size(u).
+\]
+Las demas son livianas.
+
+\subsubsection*{Definicion 2: mayor que sus hermanos}
+La arista $(u,v)$ es pesada si $v$ es el hijo de mayor subarbol entre todos los
+hijos de $u$. Si hay empate, eliges solo uno. Las demas son livianas.
+
+\subsection{Lema clave}
+Al bajar por una arista liviana $(u,v)$:
+\[
+\size(v)\le \frac{\size(u)}2.
+\]
+
+\subsection{Por que el lema implica $\bigO(\log n)$}
+Cada vez que bajas por una arista liviana, el tamano del subarbol se reduce al
+menos a la mitad:
+\[
+n,\quad \frac n2,\quad \frac n4,\quad \frac n8,\ldots
+\]
+No puedes dividir entre dos mas de $\log_2 n$ veces antes de llegar a $1$. Por
+eso en cualquier camino desde la raiz hasta un nodo hay a lo mucho
+$\bigO(\log n)$ aristas livianas. Entre aristas livianas hay cadenas pesadas,
+asi que tambien hay $\bigO(\log n)$ cadenas pesadas.
+
+\subsection{Arreglos que guarda HLD}
+Los slides usan:
+\begin{itemize}[leftmargin=*]
+\item $\tin[u]$: posicion de $u$ en el arreglo lineal.
+\item $\tout[u]$: ultima posicion dentro del subarbol de $u$.
+\item $parent[u]$: padre de $u$.
+\item $\depth[u]$: profundidad.
+\item $nxt[u]$: cabeza de la cadena pesada donde esta $u$.
+\item $\size[u]$: tamano de subarbol.
+\end{itemize}
+
+\subsection{Propiedad de linealizacion}
+Si $u$ esta en una cadena pesada, entonces:
+\[
+[\tin[nxt[u]],\tin[u]]
+\]
+contiene todos los nodos desde la cabeza de la cadena hasta $u$. Como esos nodos
+son consecutivos en el arreglo, puedes preguntarle al segment tree por ese rango.
+
+\subsection{Consulta de camino con HLD}
+Para consultar el camino entre $a$ y $b$:
+\begin{enumerate}[leftmargin=*]
+\item Mientras $nxt[a]\ne nxt[b]$, los nodos estan en cadenas distintas.
+\item Tomas la cadena cuya cabeza esta mas profunda.
+\item Consultas el rango desde la cabeza de esa cadena hasta el nodo.
+\item Subes ese nodo al padre de la cabeza.
+\item Cuando estan en la misma cadena, haces una ultima query entre el nodo mas
+alto y el mas bajo.
+\end{enumerate}
+
+La razon de escoger la cabeza mas profunda es que esa cadena completa pertenece
+al camino $a\leadsto b$ y puedes eliminarla de golpe.
+
+\subsection{Correctitud de HLD path query}
+El algoritmo siempre mantiene que falta procesar el camino entre los nodos
+actuales $a$ y $b$. Si sus cadenas son distintas, la cabeza mas profunda no
+puede estar por encima del LCA de los nodos originales; por tanto, el segmento
+desde esa cabeza hasta el nodo actual pertenece completamente al camino. Despues
+de consultarlo, subir al padre de la cabeza elimina exactamente esa parte. Al
+final ambos nodos estan en la misma cadena, y el tramo restante es un solo
+intervalo.
+
+\subsection{Complejidad}
+Hay $\bigO(\log n)$ cambios de cadena. Cada consulta al segment tree cuesta
+$\bigO(\log n)$. Entonces:
+\[
+\text{path query/update}=\bigO(\log^2 n).
+\]
+El preprocesamiento con DFS cuesta:
+\[
+\bigO(n).
+\]
+
+\subsection{Subtree queries con el mismo HLD}
+Como el DFS asigna tiempos consecutivos a un subarbol:
+\[
+subtree(u)=[\tin[u],\tout[u]].
+\]
+Por eso una query/update de subarbol es una sola operacion de segment tree:
+\[
+\bigO(\log n).
+\]
+
+\subsection{Nodos vs aristas}
+Si los valores estan en nodos, usas directamente $\tin[u]$. Si los valores
+estan en aristas, representas la arista $(parent[u],u)$ en la posicion de $u$.
+Entonces una query de camino debe tener cuidado de excluir la posicion del LCA
+si estas consultando aristas.
+
+\subsection{Cuando usar HLD}
+Usa HLD cuando:
+\begin{itemize}[leftmargin=*]
+\item el arbol es fijo;
+\item hay muchas consultas entre pares de nodos;
+\item las consultas son sobre caminos;
+\item necesitas combinar con segment tree;
+\item aparecen frases como ``path query'', ``path update'', ``max edge on path'',
+``sum on path''.
+\end{itemize}
+
+\subsection{Cuando NO usar HLD}
+No es la primera opcion si:
+\begin{itemize}[leftmargin=*]
+\item el arbol cambia con link/cut;
+\item solo necesitas LCA simple;
+\item solo preguntas subarboles, donde Euler timestamps bastan;
+\item el problema es conectividad general con inserciones y borrados de aristas.
+\end{itemize}
+
+\newpage
+\section{Small-to-large trick / DSU on tree}
+
+\subsection{Que problema resuelve}
+Small-to-large, tambien llamado DSU on tree, sirve para calcular informacion de
+cada subarbol de un arbol estatico. Es util cuando para cada nodo $u$ quieres
+responder algo sobre todos los vertices de su subarbol.
+
+Ejemplos:
+\begin{itemize}[leftmargin=*]
+\item color mas frecuente en el subarbol de cada nodo;
+\item cantidad de colores distintos en cada subarbol;
+\item queries tipo ``Tree and Queries'';
+\item ``Lomsat gelral'';
+\item informacion que se puede mantener con operaciones add/remove.
+\end{itemize}
+
+\subsection{Idea intuitiva}
+Procesar desde cero cada subarbol seria $\bigO(n^2)$. Small-to-large evita eso:
+\begin{itemize}[leftmargin=*]
+\item procesa hijos livianos y borra su informacion;
+\item procesa el hijo pesado y conserva su informacion;
+\item agrega encima los hijos livianos y el nodo actual;
+\item responde la query del nodo actual;
+\item si el padre no quiere conservar esta informacion, la borra.
+\end{itemize}
+
+\subsection{Relacion con HLD}
+La misma idea heavy/light garantiza que un nodo solo se reinsertara por cada
+arista liviana en su camino hacia la raiz. Como hay $\bigO(\log n)$ aristas
+livianas, cada nodo se agrega/elimina $\bigO(\log n)$ veces. Por eso el total es
+$\bigO(n\log n)$ operaciones de informacion.
+
+\subsection{Pseudocodigo teorico}
+\begin{enumerate}[leftmargin=*]
+\item Calcula tamaños de subarbol y el hijo pesado de cada nodo.
+\item Para cada hijo liviano $v$, resuelve $v$ con \texttt{keep=false}.
+\item Resuelve el hijo pesado con \texttt{keep=true}.
+\item Agrega al contenedor la informacion de todos los hijos livianos y de $u$.
+\item Responde la pregunta de $u$ con el contenedor actual.
+\item Si \texttt{keep=false}, elimina la informacion del subarbol de $u$.
+\end{enumerate}
+
+\subsection{Correctitud}
+Cuando respondes el nodo $u$, el contenedor tiene exactamente los nodos del
+subarbol de $u$: el hijo pesado quedo conservado, los hijos livianos fueron
+reagregados y $u$ fue agregado. Por tanto, cualquier funcion que dependa solo
+del multiconjunto de valores del subarbol se responde correctamente.
+
+\subsection{Complejidad}
+Si \texttt{add} y \texttt{remove} cuestan $\bigO(1)$ o $\bigO(\log n)$, el total
+es:
+\[
+\bigO(n\log n)\quad\text{o}\quad \bigO(n\log^2 n)
+\]
+segun el costo del contenedor.
+
+\newpage
+\section{Dynamic tree problem}
+
+\subsection{Modelo}
+El dynamic tree problem mantiene un bosque de arboles enraizados bajo:
+\begin{itemize}[leftmargin=*]
+\item \texttt{link(v,w)}: conecta dos arboles agregando una arista.
+\item \texttt{cut(v)} o \texttt{cut(u,v)}: elimina una arista.
+\item \texttt{findRoot(v)}: encuentra la raiz/componente de $v$.
+\item path aggregates: suma, minimo o maximo en un camino.
+\end{itemize}
+
+La meta de los slides:
+\[
+\bigO(\log n)\text{ amortizado por operacion}.
+\]
+
+\subsection{Diferencia con HLD}
+HLD funciona cuando el arbol no cambia. Dynamic trees permiten cambiar la forma
+del bosque. Por eso HLD ya no basta como estructura directa. Link-cut trees usan
+ideas parecidas a HLD, pero las cadenas preferidas cambian segun las operaciones.
+
+\subsection{Operaciones tipicas}
+\begin{center}
+\begin{tabular}{p{0.24\linewidth}p{0.46\linewidth}p{0.18\linewidth}}
+\toprule
+Operacion & Significado & Meta \\
+\midrule
+\texttt{access(v)} & expone el camino raiz--$v$ & $\bigO(\log n)$ amort. \\
+\texttt{link(v,w)} & conecta dos arboles & $\bigO(\log n)$ amort. \\
+\texttt{cut(v)} & corta una arista hacia el padre & $\bigO(\log n)$ amort. \\
+\texttt{findRoot(v)} & raiz del arbol de $v$ & $\bigO(\log n)$ amort. \\
+\texttt{pathQuery(u,v)} & agregado en camino & $\bigO(\log n)$ amort. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+\section{Link-cut trees}
+
+\subsection{Idea central}
+Un link-cut tree representa cada arbol original mediante una coleccion de
+caminos preferidos. Cada camino preferido se guarda en un splay tree auxiliar.
+La estructura cambia los caminos preferidos con \texttt{access(v)}.
+
+\subsection{Preferred child}
+Para un nodo $v$, su preferred child es el hijo $c$ tal que el ultimo acceso
+dentro del subarbol de $v$ ocurrio en el subarbol de $c$.
+
+\subsection{Preferred edge y preferred path}
+La arista hacia el preferred child es preferred edge. Una preferred path es una
+cadena maxima de preferred edges. Las preferred paths son disjuntas por vertices.
+
+\subsection{Auxiliary tree}
+Cada preferred path se guarda en un splay tree:
+\begin{itemize}[leftmargin=*]
+\item la llave es la profundidad en el arbol original;
+\item el subarbol izquierdo contiene ancestros;
+\item el subarbol derecho contiene descendientes;
+\item cada splay puede guardar agregados del camino.
+\end{itemize}
+
+\subsection{Path-parent}
+Si una preferred path termina y existe una arista normal hacia arriba, el splay
+que representa la path guarda un puntero conceptual llamado path-parent hacia la
+siguiente path superior. Esto permite subir entre caminos.
+
+\subsection{La operacion access(v)}
+\texttt{access(v)} fuerza que el camino desde la raiz representada hasta $v$ se
+convierta en una sola preferred path. Los slides la describen asi:
+\begin{enumerate}[leftmargin=*]
+\item Hacer splay de $v$ para llevarlo a la raiz de su auxiliary tree.
+\item Cortar el hijo derecho de $v$: esos descendientes dejan de ser preferred.
+\item Subir mediante path-parent al siguiente camino superior.
+\item Hacer splay de ese nodo superior y pegar el camino anterior como hijo
+derecho.
+\item Repetir hasta llegar a la raiz representada.
+\end{enumerate}
+
+Efecto: despues de \texttt{access(v)}, $v$ queda en la raiz de un splay que
+contiene exactamente el camino desde la raiz del arbol hasta $v$.
+
+\subsection{Por que access permite path queries}
+Si puedes exponer un camino como un splay, entonces el agregado del camino esta
+guardado en la raiz del splay. Para consultas entre dos nodos en una version
+enraizable se usa normalmente:
+\begin{itemize}[leftmargin=*]
+\item \texttt{makeroot(u)};
+\item \texttt{access(v)};
+\item leer el agregado del splay de $v$.
+\end{itemize}
+La guia de slides enfatiza la idea conceptual de \texttt{access}; en una
+implementacion completa tambien aparecen lazy reversals para \texttt{makeroot}.
+
+\subsection{Analisis con HLD}
+Los slides usan HLD como herramienta de analisis, no necesariamente como parte
+de la implementacion. El punto es:
+\begin{itemize}[leftmargin=*]
+\item Cambios al acceder a hijos livianos son pocos en cualquier camino:
+$\bigO(\log n)$.
+\item Cambios asociados a hijos pesados pueden ser muchos individualmente, pero
+se pagan con una funcion potencial.
+\item El costo total de \texttt{access} queda $\bigO(\log n)$ amortizado.
+\end{itemize}
+
+\subsection{Correctitud conceptual}
+La estructura nunca cambia el arbol representado cuando solo hace \texttt{access}.
+Solo cambia como lo descompone en caminos preferidos. Como cada preferred path
+se guarda ordenada por profundidad, las rotaciones del splay preservan el orden
+del camino. Al cortar y pegar hijos derechos se actualiza exactamente que parte
+del camino raiz--$v$ debe volverse preferred.
+
+\subsection{Cuando usar link-cut tree}
+Usa link-cut tree cuando:
+\begin{itemize}[leftmargin=*]
+\item el grafo siempre es bosque;
+\item hay operaciones link y cut online;
+\item necesitas agregados en caminos;
+\item el arbol cambia, asi que HLD estatico no sirve.
+\end{itemize}
+
+\subsection{Cuando NO usar link-cut tree}
+No lo uses como primera opcion si:
+\begin{itemize}[leftmargin=*]
+\item el problema es offline: rollback DSU suele ser mas facil;
+\item solo hay inserciones: DSU basta;
+\item solo hay arbol estatico: HLD basta;
+\item solo quieres subtree aggregates: Euler-tour trees suelen ser mas naturales.
+\end{itemize}
+
+\newpage
+\section{Euler-tour trees}
+
+\subsection{Idea central}
+Un Euler-tour tree representa un arbol como una secuencia de visitas de un tour.
+Esa secuencia se guarda en un BST balanceado, por ejemplo treap, AVL o splay.
+Como el BST permite \texttt{split} y \texttt{merge}, puedes cortar y pegar
+subsecuencias para simular link/cut.
+
+\subsection{Secuencia Euler}
+Para un arbol no dirigido, cada arista se recorre dos veces: bajando y subiendo.
+Los slides dan una secuencia conceptual:
+\[
+1\to 2\to 2\to 1\to 3\to 3\to 1.
+\]
+Lo importante no es memorizar exactamente esa convencion, sino entender que el
+tour codifica la frontera del arbol y que cada subarbol aparece como un bloque
+manipulable en la secuencia.
+
+\subsection{Representacion en BST balanceado}
+El BST no se ordena por labels de vertices. Se ordena por posicion implicita en
+la secuencia. Cada nodo del BST puede guardar:
+\begin{itemize}[leftmargin=*]
+\item tamano del segmento;
+\item suma/min/max del segmento;
+\item punteros a ocurrencias de vertices;
+\item informacion de componente.
+\end{itemize}
+
+\subsection{Cut en Euler-tour tree}
+Para cortar un subarbol o una arista:
+\begin{enumerate}[leftmargin=*]
+\item Encuentras las ocurrencias relevantes en la secuencia.
+\item Haces splits para separar:
+\[
+Before,\quad Middle,\quad After.
+\]
+\item El bloque que representa la parte cortada queda separado.
+\item Concatenas lo que debe seguir junto.
+\end{enumerate}
+Cada split/merge cuesta $\bigO(\log n)$.
+
+\subsection{Link en Euler-tour tree}
+Para unir el arbol de $u$ como hijo de $v$:
+\begin{enumerate}[leftmargin=*]
+\item Cortas la secuencia en la posicion donde quieres insertar.
+\item Insertas/spliceas la secuencia completa del arbol de $u$.
+\item Agregas las ocurrencias que representan la nueva arista.
+\item Haces merge de todo.
+\end{enumerate}
+
+\subsection{Conectividad con Euler-tour trees}
+Dos vertices estan conectados si sus ocurrencias pertenecen al mismo BST raiz.
+Por eso una query \texttt{connected(u,v)} se reduce a comparar representantes
+del BST que contiene la ocurrencia de $u$ y la ocurrencia de $v$.
+
+\subsection{Comparacion con link-cut trees}
+\begin{center}
+\begin{tabular}{p{0.24\linewidth}p{0.30\linewidth}p{0.30\linewidth}}
+\toprule
+Criterio & Link-cut tree & Euler-tour tree \\
+\midrule
+Mejor para & agregados en camino & agregados de subarbol/componente \\
+Representacion & preferred paths en splay & tour en BST balanceado \\
+Link/cut forest & si & si \\
+Path aggregate & natural & menos directo \\
+Subtree aggregate & menos natural & natural \\
+Implementacion & compleja & mas secuencial \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+\section{Dynamic connectivity en grafos generales}
+
+\subsection{Problema}
+Mantener un grafo no dirigido bajo:
+\begin{itemize}[leftmargin=*]
+\item \texttt{insert(u,v)};
+\item \texttt{delete(u,v)};
+\item \texttt{connected(u,v)}.
+\end{itemize}
+
+\subsection{Por que es mas dificil que bosques}
+En un bosque, borrar una arista siempre parte un arbol en dos componentes. En un
+grafo general, puede haber otro camino alternativo. Entonces borrar una arista
+puede no cambiar nada. Si la arista borrada era parte del spanning forest, debes
+buscar una arista de reemplazo entre las dos nuevas partes.
+
+\subsection{Estrategia de los slides}
+Los slides resumen una solucion con:
+\begin{itemize}[leftmargin=*]
+\item mantener spanning forests del grafo;
+\item particionar aristas en $\log n$ niveles;
+\item usar Euler-tour trees para mantener el bosque de cada nivel;
+\item costo amortizado $\bigO(\log^2 n)$ en updates y $\bigO(\log n)$ en queries.
+\end{itemize}
+
+\subsection{Idea de niveles}
+Las aristas se organizan por niveles para controlar cuantas veces puede bajar o
+subir una arista antes de pagar su costo. Cuando se borra una tree edge, se
+buscan reemplazos entre niveles. La estructura por niveles evita revisar todas
+las aristas cada vez.
+
+\subsection{Lower bounds}
+Los slides mencionan resultados de Patrascu y Demaine: existe un trade-off
+inherente entre update time y query time. La moraleja para examen: no esperes
+una estructura trivial con update y query ambos constantes para fully dynamic
+connectivity general.
+
+\newpage
+\section{Rollback DSU y conectividad dinamica offline}
+
+\subsection{Por que incluirlo}
+Aunque los slides hablan de Euler-tour trees para conectividad dinamica online,
+muchos problemas tipo Yosupo/Codeforces permiten leer todas las operaciones
+antes de responder. En ese caso, la herramienta mas importante es rollback DSU
+con segment tree sobre el tiempo.
+
+\subsection{DSU normal}
+DSU mantiene componentes bajo uniones:
+\begin{itemize}[leftmargin=*]
+\item \texttt{find(x)} devuelve el representante.
+\item \texttt{union(a,b)} une las componentes.
+\end{itemize}
+Sirve perfecto para inserciones, pero no soporta borrados directamente.
+
+\subsection{Rollback DSU}
+Rollback DSU guarda un stack de cambios. Cada union registra que representante
+cambio, que tamano cambio y que agregado cambio. Luego puedes deshacer hasta un
+snapshot anterior.
+
+Importante: para rollback normalmente no se usa path compression, porque seria
+dificil deshacer todos los cambios. Se usa union by size/rank, con find
+$\bigO(\log n)$ o casi constante por altura controlada.
+
+\subsection{Segment tree sobre el tiempo}
+Cada arista tiene intervalos de vida: desde que se inserta hasta que se borra.
+Si una arista esta activa en el intervalo $[l,r]$, la agregas a los nodos del
+segment tree de tiempo que cubren ese intervalo.
+
+Luego haces DFS sobre el segment tree:
+\begin{enumerate}[leftmargin=*]
+\item Tomas snapshot del DSU.
+\item Agregas todas las aristas guardadas en el nodo actual.
+\item Si estas en una hoja de tiempo, respondes las queries de ese instante.
+\item Si no, bajas a hijos.
+\item Al salir, haces rollback al snapshot.
+\end{enumerate}
+
+\subsection{Correctitud}
+Cuando estas en una hoja $t$, el camino desde la raiz del segment tree hasta esa
+hoja contiene exactamente los nodos cuyos intervalos cubren $t$. Por tanto, el
+DSU contiene exactamente las aristas activas en el tiempo $t$. Las respuestas de
+conectividad o agregado por componente son correctas. El rollback restaura el
+estado para explorar otro intervalo sin contaminarlo con aristas que no estan
+activas ahi.
+
+\subsection{Complejidad}
+Cada intervalo de vida de una arista se guarda en $\bigO(\log q)$ nodos del
+segment tree. Si hay $m$ intervalos:
+\[
+\bigO(m\log q)
+\]
+uniones. Cada union/find cuesta $\bigO(\log n)$ sin path compression, o
+$\bigO(1)$ amortizado si se analiza por union by size en la practica teorica
+segun la variante. Una cota segura:
+\[
+\bigO((m\log q+q)\log n).
+\]
+Espacio:
+\[
+\bigO(m\log q+n).
+\]
+
+\subsection{Component sum con vertex add}
+En problemas como ``Dynamic Graph Vertex Add Component Sum'', ademas de aristas
+activas hay updates de valor en vertices y queries de suma de componente.
+La idea teorica:
+\begin{itemize}[leftmargin=*]
+\item DSU guarda $sum[root]$ de cada componente.
+\item Al unir componentes, suma sus valores.
+\item Para vertex add offline, puedes tratar el cambio de valor como evento en
+la hoja de tiempo o usar tecnicas de contribucion por intervalo segun el
+formato.
+\item En una query, respondes $sum[\find(v)]$.
+\end{itemize}
+Si los vertex updates son online mezclados con rollback, debes registrar en el
+stack tambien cambios de suma para poder deshacerlos.
+
+\subsection{Cuando usar rollback DSU}
+Usalo cuando:
+\begin{itemize}[leftmargin=*]
+\item hay inserciones y borrados de aristas;
+\item puedes leer todas las operaciones antes de responder;
+\item las queries son conectividad o agregado por componente;
+\item el problema no exige respuesta online real.
+\end{itemize}
+
+\newpage
+\section{Imperial Roads y max edge on path}
+
+\subsection{Conexion con dynamic/trees}
+El warm-up de los slides pregunta por Imperial Roads: si el rey quiere forzar
+una carretera en el MST, como cambia la solucion. La idea clave usa propiedades
+de MST y consultas de maximo en camino.
+
+\subsection{Propiedad del ciclo}
+Toma un MST $T$. Si agregas una arista no-arbol $e=(u,v)$ de peso $w$, se forma
+un ciclo: la arista nueva mas el camino entre $u$ y $v$ en $T$.
+
+Para obtener el mejor MST que incluye $e$, debes quitar del ciclo la arista de
+mayor peso dentro del camino de $u$ a $v$ en $T$. Si ese maximo pesa $M$, el
+nuevo costo es:
+\[
+cost(T)+w-M.
+\]
+
+\subsection{Estructura}
+Necesitas responder max edge on path en el MST. Puedes usar:
+\begin{itemize}[leftmargin=*]
+\item LCA con binary lifting guardando maximo por salto;
+\item HLD + segment tree;
+\item RMQ/LCA si el problema se formula asi.
+\end{itemize}
+
+\subsection{Correctitud}
+Al agregar $e$, cualquier arbol que incluya $e$ y mantenga conectividad debe
+eliminar una arista del ciclo. Para minimizar el peso total, conviene eliminar
+la arista mas pesada del ciclo que no sea obligatoria. Como $e$ se fuerza, se
+elimina la maxima del camino original. Esta es la propiedad de ciclo del MST.
+
+\newpage
+\section{Como reconocer que estructura usar}
+
+\begin{center}
+\begin{tabular}{p{0.34\linewidth}p{0.30\linewidth}p{0.25\linewidth}}
+\toprule
+Frase del problema & Usa & Por que \\
+\midrule
+Solo insertan aristas y preguntan connected & DSU & no hay borrados \\
+Insert/delete/connected offline & rollback DSU + segment tree tiempo & conoces intervalos de vida \\
+Forest con link/cut online & link-cut tree o Euler-tour tree & cambia la forma del bosque \\
+Path max/sum en arbol fijo & HLD + segment tree & camino se parte en pocos intervalos \\
+Subtree add/query en arbol fijo & Euler timestamps + segment tree & subarbol es intervalo \\
+Subtree informacion por cada nodo & DSU on tree & conserva hijo pesado \\
+Path aggregate en arbol dinamico & link-cut tree & expone camino con access \\
+Component aggregate en bosque dinamico & Euler-tour tree & componente como tour/secuencia \\
+Forzar arista en MST & MST + max edge path & propiedad del ciclo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Plantillas de solucion teorica}
+
+\subsection{Plantilla HLD}
+\begin{enumerate}[leftmargin=*]
+\item Enraizo el arbol y calculo $\size$, $parent$, $\depth$.
+\item Marco como pesado el hijo de mayor subarbol.
+\item Linealizo cadenas pesadas con $\tin$ y $nxt$.
+\item Construyo segment tree sobre el arreglo lineal.
+\item Para una query de camino, mientras las cabezas difieran, proceso la cadena
+de cabeza mas profunda y subo.
+\item Correctitud: cada segmento procesado pertenece al camino y al final queda
+un solo segmento en la misma cadena.
+\item Complejidad: $\bigO(n)$ preproceso, $\bigO(\log^2 n)$ por path query/update.
+\end{enumerate}
+
+\subsection{Plantilla link-cut tree}
+\begin{enumerate}[leftmargin=*]
+\item Represento cada preferred path con un splay auxiliar.
+\item Mantengo preferred child segun el ultimo access.
+\item \texttt{access(v)} convierte el camino raiz--$v$ en una preferred path.
+\item Link/cut se implementan exponiendo caminos y modificando punteros.
+\item Los agregados de camino se guardan en las raices de los splays.
+\item Correctitud: access cambia solo la representacion, no el arbol representado.
+\item Complejidad: $\bigO(\log n)$ amortizado por operacion.
+\end{enumerate}
+
+\subsection{Plantilla Euler-tour tree}
+\begin{enumerate}[leftmargin=*]
+\item Represento cada arbol por una secuencia Euler guardada en BST balanceado.
+\item Link se vuelve cortar una posicion y splicear otra secuencia.
+\item Cut se vuelve separar un bloque con split y recombinar con merge.
+\item Connected compara si dos ocurrencias pertenecen al mismo BST.
+\item Correctitud: el tour codifica exactamente la componente arbol.
+\item Complejidad: $\bigO(\log n)$ por split/merge, por tanto $\bigO(\log n)$
+por operacion de bosque.
+\end{enumerate}
+
+\subsection{Plantilla rollback DSU}
+\begin{enumerate}[leftmargin=*]
+\item Leo todas las operaciones.
+\item Convierto cada arista en intervalos de tiempo donde esta activa.
+\item Inserto cada intervalo en un segment tree de tiempo.
+\item Recorro el segment tree con DFS y rollback DSU.
+\item En cada hoja respondo con el DSU actual.
+\item Correctitud: en la hoja $t$ estan unidas exactamente las aristas activas
+en $t$.
+\item Complejidad: $\bigO(m\log q)$ uniones, cada una con costo del DSU.
+\end{enumerate}
+
+\newpage
+\section{Mapa de slides cubiertos}
+
+\subsection*{CS3014\_\_\_Heavy\_Light\_Decomposition.pdf}
+\begin{itemize}[leftmargin=*]
+\item Pagina 1: motivacion de consultas/modificaciones en caminos y definicion
+general de HLD.
+\item Pagina 2: dos definiciones de arista pesada y prueba de que una arista
+liviana reduce el subarbol a la mitad.
+\item Pagina 3: implementacion base, arreglos \texttt{in}, \texttt{out},
+\texttt{nxt}, profundidad y propiedad del rango de una cadena.
+\item Pagina 4: path query, path update, subtree update y nota para valores en
+aristas.
+\item Pagina 5: extension a small-to-large trick y pseudocodigo conceptual.
+\item Pagina 6: implementacion de add/solve y problemas de practica.
+\end{itemize}
+
+\subsection*{eda\_slides\_08\_dynamic\_graph.pdf}
+\begin{itemize}[leftmargin=*]
+\item Paginas 1--4: overview y warm-up con Imperial Roads.
+\item Paginas 5--6: dynamic tree problem, link/cut, findRoot y path aggregates.
+\item Paginas 7--10: preferred paths, auxiliary trees y operacion access.
+\item Paginas 11--14: HLD como herramienta de analisis amortizado.
+\item Paginas 15--19: resumen, operaciones y referencias.
+\end{itemize}
+
+\subsection*{eda\_slides\_09\_dynamic\_graph.pdf}
+\begin{itemize}[leftmargin=*]
+\item Paginas 1--5: dynamic connectivity, fully dynamic, incremental y
+decremental.
+\item Pagina 6: contraste link-cut trees vs Euler-tour trees.
+\item Paginas 7--9: Euler-tour tree mechanics, link y cut con split/merge.
+\item Pagina 10: fully dynamic connectivity en grafos generales con niveles y
+Euler-tour trees.
+\item Pagina 11: resumen y lower bounds de Patrascu--Demaine.
+\item Paginas 12--14: cierre, referencias y acknowledgements.
+\end{itemize}
+
+\input{slide_index_detail.tex}
+
+\section*{Cierre: si tienes poco tiempo}
+Prioriza asi:
+\begin{enumerate}[leftmargin=*]
+\item HLD completo: heavy/light, lema de mitad, path query, path update,
+subtree interval.
+\item DSU y rollback DSU offline para conectividad dinamica de problemas tipo
+Yosupo.
+\item Link-cut trees a nivel conceptual: preferred paths, auxiliary splay,
+access, link/cut.
+\item Euler-tour trees: secuencia, BST balanceado, split/merge, conectividad.
+\item Small-to-large trick para queries por subarbol.
+\item Imperial Roads: MST + max edge on path.
+\end{enumerate}
+
+Si debes responder en papel y no implementar, lo mas importante es identificar
+el modelo correcto: arbol fijo, bosque dinamico, grafo general online u offline.
+
+\end{document}
