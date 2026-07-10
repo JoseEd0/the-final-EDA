@@ -1,0 +1,873 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=0.62in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{array,booktabs,multicol}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+\hypersetup{hidelinks}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=1pt}
+\setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=1pt}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  breaklines=true,
+  showstringspaces=false
+}
+
+\newcommand{\bigO}{O}
+\newcommand{\SA}{\operatorname{SA}}
+\newcommand{\LCP}{\operatorname{LCP}}
+\newcommand{\rankv}{\operatorname{rank}}
+\newcommand{\lca}{\operatorname{lca}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\RMQ}{\operatorname{RMQ}}
+\newcommand{\pred}{\operatorname{pred}}
+\newcommand{\succf}{\operatorname{succ}}
+
+\newcommand{\boxhead}[1]{\vspace{3pt}\textbf{#1.}}
+
+\title{\vspace{-1.0cm}Ejercicios Flash para el Final de EDA\\
+\large Guia formal de teoria aplicada, soluciones y complejidades}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-0.7cm}
+
+\section*{Como usar esta guia}
+Este documento reemplaza la version anterior de \texttt{ejercicios\_flash.pdf}. Esta escrito para responder
+problemas teoricos tipo Racso: no basta nombrar una estructura; hay que justificar por que aplica, que guarda,
+como responde, por que es correcto y cuanto cuesta.
+
+\boxhead{Orden de estudio si falta tiempo}
+\begin{enumerate}
+\item Lee primero la Seccion 1: plantilla de respuesta y mapa de decision.
+\item Luego asegura las tres preguntas de la lista del profesor: Secciones 2, 3 y 4.
+\item Despues strings: suffix array, LCP y aplicaciones (Secciones 6--9).
+\item Finalmente dynamic e integer: rollback DSU, Euler-tour/link-cut, vEB/Y-fast/radix (Secciones 12--15).
+\end{enumerate}
+
+\boxhead{Formato que debe sonar en el examen}
+``El problema es estatico/dinamico. La estructura correcta es X porque transforma la consulta en Y.
+Preproceso guardando Z. Para cada query hago estos pasos. La correctitud se basa en este invariante/propiedad.
+La complejidad temporal es ... y la memoria es ...''.
+
+\tableofcontents
+\newpage
+
+\section{Plantilla formal y mapa de decision}
+
+\subsection{Plantilla de respuesta para cualquier problema}
+Para cada ejercicio, intenta llenar esta plantilla en papel:
+\begin{enumerate}
+\item \textbf{Objeto}: arreglo, string, arbol, bosque dinamico, grafo general, conjunto de enteros.
+\item \textbf{Tipo}: estatico, incremental, decremental, fully dynamic, online u offline.
+\item \textbf{Estructura}: sparse table, suffix array, LCA, HLD, centroid decomposition, rollback DSU,
+Euler-tour tree, link-cut tree, vEB/Y-fast, radix sort.
+\item \textbf{Que guarda}: por ejemplo, \(\LCP\), ancestors \(2^j\), maximo en salto, componentes DSU,
+intervalos de vida de aristas, prefijos de un trie binario.
+\item \textbf{Query/update}: traducir la pregunta al lenguaje de la estructura.
+\item \textbf{Correctitud}: explicar el invariante que hace que la traduccion sea exacta.
+\item \textbf{Complejidad}: preprocesamiento, query/update y memoria.
+\end{enumerate}
+
+\subsection{Mapa de decision}
+\begin{center}
+\begin{tabular}{p{0.38\linewidth}p{0.26\linewidth}p{0.25\linewidth}}
+\toprule
+Frase del enunciado & Estructura & Complejidad tipica \\
+\midrule
+Arreglo fijo, min/max/gcd en rangos & Sparse table & build \(\bigO(n\log n)\), query \(\bigO(1)\) \\
+Camino en arbol fijo & LCA / HLD & LCA \(\bigO(\log n)\), HLD \(\bigO(\log^2 n)\) \\
+Subarbol en arbol fijo & Euler tour timestamps & query/update como intervalo \\
+Muchos patrones en texto fijo & Suffix array o Aho-Corasick & depende de patrones \\
+Comparar/ordenar subcadenas & SA + LCP + RMQ & comparacion \(\bigO(1)\) \\
+Contar caminos en arbol con restriccion de distancia & Centroid decomposition & \(\bigO(n\log^2 n)\) \\
+Add/delete edges offline & Segment tree tiempo + rollback DSU & \(\bigO(m\log q)\) uniones \\
+Bosque dinamico con path aggregate & Link-cut tree & \(\bigO(\log n)\) amortizado \\
+Bosque dinamico con componente/subtree aggregate & Euler-tour tree & \(\bigO(\log n)\) \\
+Predecessor de enteros & vEB / Y-fast / Fusion & \(\bigO(\log w)\), \(\bigO(\log_w n)\) \\
+Ordenar enteros & Counting/radix/signature & puede romper \(n\log n\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section{Lista profesor 1: subsecuencia en un camino de arbol}
+
+\subsection{Enunciado tipo}
+Se tiene un arbol con \(N\) vertices. Cada vertice contiene una letra minuscula. En una consulta se dan
+\(U,V\) y una cadena \(S\). Sea \(T\) la cadena obtenida al escribir, en orden, las letras del camino simple
+de \(U\) a \(V\). Se debe decidir si \(S\) es subsecuencia de \(T\).
+
+\subsection{Reconocimiento}
+El arbol es fijo y las queries son sobre caminos. La palabra clave es \textbf{camino en arbol estatico}.
+La estructura natural es HLD, porque descompone cualquier camino en \(\bigO(\log N)\) segmentos de cadenas
+pesadas. Como el alfabeto es pequeno, se puede guardar para cada letra las posiciones donde aparece en el
+arreglo lineal de HLD.
+
+\subsection{Estructuras que se guardan}
+\begin{itemize}
+\item HLD: \(parent[v]\), \(depth[v]\), \(head[v]\), \(pos[v]\), \(out[v]\).
+\item Arreglo base \(B[pos[v]] =\) letra del vertice \(v\).
+\item Para cada letra \(c\in\{a,\ldots,z\}\), lista ordenada \(L_c=\{pos[v] : B[pos[v]]=c\}\).
+\end{itemize}
+
+\subsection{Algoritmo}
+Primero se descompone el camino \(U\to V\) en segmentos sobre el arreglo base, respetando el orden real
+del camino. Hay dos partes:
+\[
+U \to \lca(U,V) \quad\text{y}\quad \lca(U,V)\to V.
+\]
+La primera parte se recorre hacia arriba; dentro de una cadena HLD eso puede significar posiciones
+decrecientes. La segunda parte se recorre hacia abajo; se guardan sus segmentos y se invierten al final.
+
+Luego se consume la cadena \(S\) de izquierda a derecha. Si el caracter actual es \(S[i]\), se busca en
+la lista \(L_{S[i]}\) la primera aparicion valida dentro del segmento actual y despues de la posicion ya usada.
+En segmentos crecientes se usa \texttt{lower\_bound}; en segmentos decrecientes se usa \texttt{upper\_bound}
+y se retrocede.
+
+\begin{lstlisting}
+query(U,V,S):
+  segments = ordered_HLD_segments(U,V)  // each segment has [l,r] and direction
+  i = 0
+  for seg in segments:
+    cur = seg.start
+    while i < |S|:
+      p = first_position_of_char_inside_segment_after(cur, S[i], seg)
+      if p does not exist: break
+      cur = next_position_after(p, seg.direction)
+      i++
+  return i == |S|
+\end{lstlisting}
+
+\subsection{Correctitud}
+HLD no altera el camino; solo lo parte en segmentos contiguos de cadenas pesadas. Por tanto, concatenar
+los segmentos en el orden correcto produce exactamente \(T\). Dentro de un segmento, las listas \(L_c\)
+permiten encontrar la primera aparicion de un caracter que todavia puede usarse.
+
+El greedy de tomar la primera aparicion valida es correcto para subsecuencias: si existe una solucion que usa
+una aparicion posterior del caracter actual, reemplazarla por una aparicion anterior no invalida los caracteres
+restantes, porque deja un sufijo del camino igual o mas grande para continuar. Por induccion sobre los caracteres
+de \(S\), si el algoritmo falla en algun caracter, ninguna subsecuencia completa existe.
+
+\subsection{Complejidad}
+Preprocesamiento HLD: \(\bigO(N)\). Construir listas por caracter: \(\bigO(N)\) tiempo y espacio.
+Una query usa \(\bigO(\log N)\) segmentos. Cada caracter consumido hace una busqueda binaria en una lista,
+costando \(\bigO(\log N)\). Por tanto:
+\[
+T_{\text{query}}=\bigO((|S|+\log N)\log N), \qquad
+M=\bigO(N).
+\]
+Si se optimizan las listas por cadena pesada, puede bajarse constante, pero esta respuesta ya es claramente
+menor que recorrer todo el camino para cada consulta.
+
+\section{Lista profesor 2: ordenar nodos de un trie}
+
+\subsection{Enunciado tipo}
+Dado un trie \(T\), cada nodo \(u\) representa la cadena formada por las etiquetas de las aristas desde la raiz
+hasta \(u\). Se pide ordenar los nodos por la comparacion lexicografica de sus cadenas en complejidad menor
+que \(\bigO(n^2)\).
+
+\subsection{Idea}
+En orden lexicografico, si una palabra \(A\) es prefijo propio de \(B\), entonces \(A<B\). Por eso un nodo debe
+salir antes que todos sus descendientes. Entre dos hijos de un mismo nodo, el caracter menor debe procesarse
+primero. Esto sugiere DFS preorder con hijos ordenados.
+
+\subsection{Algoritmo}
+\begin{lstlisting}
+lexicographic_trie_order(root):
+  answer = []
+  dfs(root)
+
+dfs(u):
+  append u to answer
+  for character c in increasing order:
+    if child[u][c] exists:
+      dfs(child[u][c])
+\end{lstlisting}
+
+Si la raiz representa la cadena vacia y el problema pide ordenar todos los nodos, la raiz va primero. Si solo se
+piden cadenas no vacias, se omite la raiz del arreglo final.
+
+\subsection{Correctitud}
+Sea \(u\) un nodo y \(v\) un descendiente propio. La cadena de \(u\) es prefijo propio de la cadena de \(v\);
+por definicion lexicografica, \(str(u)<str(v)\). Por eso visitar \(u\) antes que su subarbol es correcto.
+
+Ahora considera dos nodos que pertenecen a subarboles de hijos distintos \(a\) y \(b\) de un mismo nodo, con
+etiquetas \(c_a<c_b\). Sus cadenas comparten el prefijo del padre y difieren por primera vez en esas etiquetas,
+por lo que toda cadena del subarbol de \(a\) es menor que toda cadena del subarbol de \(b\). Visitar hijos en
+orden creciente respeta ese criterio. Por induccion sobre la profundidad del trie, el DFS produce el orden
+lexicografico global.
+
+\subsection{Complejidad}
+Si el alfabeto es fijo, por ejemplo \(\sigma=26\), iterar todos los caracteres en cada nodo cuesta:
+\[
+\bigO(n\sigma)=\bigO(n).
+\]
+La memoria adicional es \(\bigO(h)\) por recursion, donde \(h\) es la altura del trie, o \(\bigO(n)\) en el peor caso.
+Si los hijos estan guardados en listas desordenadas, se ordenan por caracter y el costo total es
+\(\sum_u \deg(u)\log \deg(u)\le \bigO(n\log n)\), todavia menor que \(\bigO(n^2)\).
+
+\section{Lista profesor 3: cantidad de caminos con peso \(\le C\)}
+
+\subsection{Enunciado tipo}
+Dado un arbol ponderado \(T\), calcular la cantidad de caminos \(u\rightsquigarrow v\) cuyo peso total sea
+menor o igual que una constante \(C\). El algoritmo debe ser menor que \(\bigO(n^2)\).
+
+\subsection{Por que no basta LCA/HLD}
+LCA calcula el peso de un camino especifico en \(\bigO(\log n)\). Pero aqui se piden muchos caminos: en el peor
+caso hay \(\Theta(n^2)\) pares \((u,v)\). Necesitamos contar pares sin enumerarlos. La estructura clasica para
+contar caminos con restricciones de distancia en arboles es \textbf{centroid decomposition}.
+
+\subsection{Idea de centroid decomposition}
+Un centroid \(c\) es un nodo cuya remocion deja componentes de tamano a lo mucho \(n/2\). En cualquier nivel
+de la recursion:
+\begin{itemize}
+\item contamos todos los caminos que pasan por el centroid \(c\);
+\item restamos los pares que caen completamente dentro del mismo subarbol hijo, porque esos no pasan por \(c\);
+\item recursamos en cada componente restante.
+\end{itemize}
+
+\subsection{Como contar pares con suma \(\le C\)}
+Recolecta todas las distancias desde \(c\) a los nodos de la componente:
+\[
+D=\{\dist(c,x): x \text{ en la componente}\}.
+\]
+Ordena \(D\). Con dos punteros:
+\begin{lstlisting}
+count_pairs(D,C):
+  sort(D)
+  l = 0; r = |D|-1; ans = 0
+  while l < r:
+    if D[l] + D[r] <= C:
+      ans += r-l
+      l++
+    else:
+      r--
+  return ans
+\end{lstlisting}
+Esto cuenta pares no ordenados \(\{u,v\}\) con \(\dist(c,u)+\dist(c,v)\le C\).
+
+\subsection{Algoritmo completo}
+\begin{lstlisting}
+solve(component):
+  c = centroid(component)
+  mark c as removed
+  all = [0]  // distance from c to c
+  for each neighbor subtree S of c not removed:
+    temp = distances from c to nodes in S
+    answer -= count_pairs(temp, C)
+    append temp to all
+  answer += count_pairs(all, C)
+  for each remaining component S:
+    solve(S)
+\end{lstlisting}
+
+\subsection{Correctitud}
+Todo camino \(u\rightsquigarrow v\) tiene un primer centroid en la recursion que separa a \(u\) y \(v\) en
+componentes distintas, o coincide con uno de los extremos. En ese nivel, el camino pasa por el centroid \(c\),
+por lo que su peso es:
+\[
+\dist(u,v)=\dist(c,u)+\dist(c,v).
+\]
+El conteo global \(\texttt{count\_pairs(all,C)}\) cuenta ese par. Si ambos extremos estaban en el mismo subarbol
+de \(c\), el camino no pasa por \(c\), por eso se resta en \(\texttt{count\_pairs(temp,C)}\) y se deja para la
+recursion dentro de ese subarbol. Asi, cada camino valido se cuenta exactamente una vez.
+
+\subsection{Complejidad}
+Cada nivel de centroid decomposition reduce el tamano de la componente al menos a la mitad, por lo que hay
+\(\bigO(\log n)\) niveles por nodo. Si en cada nivel se ordenan listas, una cota simple es:
+\[
+T(n)=\bigO(n\log^2 n), \qquad M(n)=\bigO(n).
+\]
+Esto cumple claramente menor que \(\bigO(n^2)\). Con tecnicas de merge o manteniendo listas ordenadas puede
+mejorarse a \(\bigO(n\log n)\), pero para respuesta de examen la version \(\bigO(n\log^2 n)\) es defendible.
+
+\newpage
+
+\section{Metricas: bloque de emergencia de la lista}
+
+\subsection{Definicion}
+Una funcion \(d:X\times X\to \mathbb{R}\) es metrica si cumple:
+\begin{enumerate}
+\item No negatividad: \(d(x,y)\ge 0\).
+\item Identidad: \(d(x,y)=0 \Leftrightarrow x=y\).
+\item Simetria: \(d(x,y)=d(y,x)\).
+\item Desigualdad triangular: \(d(x,z)\le d(x,y)+d(y,z)\).
+\end{enumerate}
+
+\subsection{Suma de metricas}
+Si \(d_1,d_2\) son metricas y \(d_3(x,y)=d_1(x,y)+d_2(x,y)\), entonces \(d_3\) es metrica.
+La no negatividad y simetria son inmediatas. Para identidad, si \(d_3(x,y)=0\), como ambos terminos son no
+negativos, \(d_1(x,y)=d_2(x,y)=0\), luego \(x=y\). Para triangular:
+\[
+d_3(x,z)=d_1(x,z)+d_2(x,z)
+\le d_1(x,y)+d_1(y,z)+d_2(x,y)+d_2(y,z)
+=d_3(x,y)+d_3(y,z).
+\]
+
+\subsection{Como verificar funciones rapidamente}
+\begin{itemize}
+\item \((x-y)^2\) no es metrica: \(d(0,2)=4\), pero \(d(0,1)+d(1,2)=1+1=2\).
+\item \(|x-y|+|f(x)-f(y)|\) suele ser metrica si incluye \(|x-y|\): el segundo termino es una pseudometrica y
+el primero garantiza identidad.
+\item \(L_1\), \(L_2\) y \(L_\infty\) son metricas en \(\mathbb{R}^d\).
+\item Pesos positivos de \(L_1\), por ejemplo \(2|x_1-y_1|+3|x_2-y_2|\), son metricas.
+\item \(\sqrt{|x-y|}\) es metrica porque \(\sqrt{a+b}\le \sqrt a+\sqrt b\).
+\item \(\min\{1,|x-y|\}\) es metrica: truncar una metrica por \(1\) preserva triangular.
+\item \(\ln(1+|x-y|)\) es metrica porque
+\[
+\ln(1+a+b)\le \ln((1+a)(1+b))=\ln(1+a)+\ln(1+b).
+\]
+\item \(\frac{|x-y|}{1+|x-y|}\) es metrica porque \(f(t)=t/(1+t)\) es creciente y subaditiva.
+\end{itemize}
+
+\newpage
+
+\section{Static RMQ y Sparse Table}
+
+\subsection{Contexto}
+RMQ significa Range Minimum Query. Dado un arreglo fijo \(A\), una consulta pide el minimo en un rango.
+Si no hay updates, una sparse table es ideal para operaciones idempotentes:
+\[
+\min(x,x)=x,\quad \max(x,x)=x,\quad \gcd(x,x)=x.
+\]
+No sirve igual para suma con dos bloques solapados, porque \(x+x\neq x\).
+
+\subsection{Definicion}
+\[
+st[k][i]=\min(A[i],A[i+1],\ldots,A[i+2^k-1]).
+\]
+La transicion parte el bloque en dos mitades:
+\[
+st[k][i]=\min(st[k-1][i],\,st[k-1][i+2^{k-1}]).
+\]
+Para una consulta cerrada \([l,r]\):
+\[
+len=r-l+1,\qquad k=\lfloor \log_2 len\rfloor,
+\]
+\[
+\RMQ(l,r)=\min(st[k][l],\,st[k][r-2^k+1]).
+\]
+Para una consulta medio abierta \([l,r)\), se usa \(len=r-l\) y:
+\[
+\RMQ(l,r)=\min(st[k][l],\,st[k][r-2^k]).
+\]
+
+\subsection{Pseudocodigo}
+\begin{lstlisting}
+build(A):
+  lg[1] = 0
+  for i = 2..n: lg[i] = lg[i/2] + 1
+  for i = 0..n-1: st[0][i] = A[i]
+  for k = 1..LG:
+    for i = 0; i + 2^k <= n; i++:
+      st[k][i] = min(st[k-1][i], st[k-1][i+2^(k-1)])
+
+query(l,r): // closed interval
+  len = r-l+1
+  k = lg[len]
+  return min(st[k][l], st[k][r-2^k+1])
+\end{lstlisting}
+
+\subsection{Correctitud}
+Por induccion en \(k\), \(st[k][i]\) guarda el minimo del bloque de longitud \(2^k\). Para \(k=0\), el bloque
+tiene un solo elemento. Para \(k>0\), el bloque se divide en dos bloques correctos de longitud \(2^{k-1}\).
+
+En una query, los dos bloques de longitud \(2^k\) elegidos cubren todo el rango. Pueden solaparse, pero el minimo
+no cambia por contar un elemento dos veces. Por tanto, la respuesta es correcta.
+
+\subsection{Complejidad}
+\[
+T_{\text{build}}=\bigO(n\log n),\qquad T_{\text{query}}=\bigO(1),\qquad M=\bigO(n\log n).
+\]
+
+\newpage
+
+\section{Suffix Array, Rank, LCP y Kasai}
+
+\subsection{Definiciones basicas}
+Un \textbf{sufijo} de \(S\) es \(S[i..n-1]\). Un \textbf{prefijo} es una parte inicial de una cadena.
+El suffix array \(\SA\) guarda los indices de los sufijos en orden lexicografico:
+\[
+S[\SA[0]..] < S[\SA[1]..] < \cdots < S[\SA[n-1]..].
+\]
+El arreglo inverso \(\rankv\) cumple:
+\[
+\rankv[i]=p \quad \Longleftrightarrow \quad \SA[p]=i.
+\]
+El arreglo LCP guarda:
+\[
+\LCP[p]=\operatorname{lcp}(S[\SA[p-1]..],S[\SA[p]..]).
+\]
+
+\subsection{Ejemplo: banana}
+Los sufijos de \texttt{banana} ordenados son:
+\[
+\texttt{a}(5),\ \texttt{ana}(3),\ \texttt{anana}(1),\ \texttt{banana}(0),\ \texttt{na}(4),\ \texttt{nana}(2).
+\]
+Entonces:
+\[
+\SA=[5,3,1,0,4,2].
+\]
+Como el sufijo que empieza en \(1\) es \texttt{anana} y ocupa la posicion \(2\), \(\rankv[1]=2\).
+
+\subsection{Manber-Myers}
+La idea es ordenar por prefijos de longitud \(1,2,4,8,\ldots\). Si ya conocemos el rank de prefijos de longitud
+\(len\), entonces el prefijo de longitud \(2len\) del sufijo \(i\) se representa por:
+\[
+(\rankv[i],\rankv[i+len]).
+\]
+Ordenar estos pares ordena los prefijos de longitud \(2len\). Pares iguales reciben el mismo nuevo rank.
+
+\subsection{Kasai}
+Kasai construye \(\LCP\) en tiempo lineal despues de tener \(\SA\) y \(\rankv\). Para cada posicion \(i\), mira
+el sufijo anterior en el orden lexicografico:
+\[
+j=\SA[\rankv[i]-1].
+\]
+Si el LCP anterior era \(h\), al pasar de \(i\) a \(i+1\) el LCP baja como mucho en \(1\), por lo que se empieza
+desde \(\max(h-1,0)\) y se avanza mientras coincidan caracteres.
+
+\subsection{Formula clave con RMQ}
+Si \(a=\rankv[i]<b=\rankv[j]\), entonces:
+\[
+\operatorname{lcp}(i,j)=\min(\LCP[a+1],\LCP[a+2],\ldots,\LCP[b]).
+\]
+Esto convierte LCP entre dos sufijos arbitrarios en una consulta RMQ.
+
+\subsection{Complejidad}
+Manber-Myers con sort comun cuesta \(\bigO(n\log^2 n)\); optimizado con counting/radix por ranks cuesta
+\(\bigO(n\log n)\). Kasai cuesta \(\bigO(n)\). El RMQ sobre LCP cuesta \(\bigO(n\log n)\) memoria y build,
+y responde en \(\bigO(1)\).
+
+\section{Aplicaciones obligatorias de Suffix Array}
+
+\subsection{Buscar y contar ocurrencias de un patron}
+Todos los sufijos que empiezan con un patron \(P\) forman un intervalo contiguo en \(\SA\). Se hacen dos busquedas
+binarias:
+\begin{itemize}
+\item \(L\): primer sufijo lexicograficamente \(\ge P\).
+\item \(R\): primer sufijo que ya no tiene prefijo \(P\).
+\end{itemize}
+Si \(L=R\), el patron no aparece. Si no:
+\[
+\#occ(P)=R-L,\qquad posiciones=\SA[L],\ldots,\SA[R-1].
+\]
+Complejidad simple por patron: \(\bigO(|P|\log n)\). Con comparaciones aceleradas por LCP puede mejorarse,
+pero para examen la idea central es el intervalo.
+
+\subsection{Subcadenas distintas}
+Cada subcadena es prefijo de algun sufijo. El sufijo \(\SA[i]\) aporta \(n-\SA[i]\) prefijos, pero los primeros
+\(\LCP[i]\) ya aparecieron en el sufijo anterior. Por tanto:
+\[
+\#\text{subcadenas distintas}
+=\sum_i \big((n-\SA[i])-\LCP[i]\big)
+=\frac{n(n+1)}2-\sum_i\LCP[i].
+\]
+
+\subsection{Longest Common Substring}
+Para dos cadenas \(A,B\), construir:
+\[
+T=A\#B\$,
+\]
+donde \(\#,\$\) no aparecen en las cadenas. En el suffix array de \(T\), se revisan vecinos de origen distinto.
+El mayor LCP entre vecinos de distinto origen es una subcadena comun maxima.
+
+Correctitud: cualquier subcadena comun es prefijo de un sufijo de \(A\) y de un sufijo de \(B\). En el bloque de
+sufijos que comparten ese prefijo debe existir algun par vecino de origen distinto; por eso revisar vecinos basta.
+
+\subsection{Comparar y ordenar subcadenas}
+Para comparar \(A=S[l_1..r_1]\) y \(B=S[l_2..r_2]\), sea:
+\[
+x=\min(\operatorname{lcp}(l_1,l_2), |A|, |B|).
+\]
+Si \(x<\min(|A|,|B|)\), decide el primer caracter distinto:
+\[
+S[l_1+x] \quad \text{vs.}\quad S[l_2+x].
+\]
+Si \(x=\min(|A|,|B|)\), una es prefijo de la otra y gana la mas corta. Si son identicas y el statement pide
+desempate por \((l,r)\), se compara el par original. Con SA+LCP+RMQ, cada comparacion cuesta \(\bigO(1)\);
+ordenar \(q\) subcadenas cuesta \(\bigO(q\log q)\).
+
+\subsection{Bordes de todas las subcadenas}
+Un borde es una cadena que es prefijo y sufijo. Si el problema pide bordes de \textbf{todas} las subcadenas, no
+alcanza KMP sobre la cadena completa. Cada borde no vacio de longitud \(b\) corresponde a dos ocurrencias iguales
+de longitud \(b\) en los extremos de alguna subcadena. Por tanto:
+\[
+ans=\frac{n(n+1)}2+\sum_{i<j}\operatorname{lcp}(i,j),
+\]
+donde el primer termino cuenta el borde vacio si el statement lo incluye.
+La suma de LCP de todos los pares de sufijos equivale a la suma de minimos de todos los subarreglos del arreglo
+\(\LCP\), calculable con pila monotona en \(\bigO(n)\) despues de construir \(\SA+\LCP\).
+
+\newpage
+
+\section{Arboles estaticos: LCA, HLD, Imperial Roads y Fools and Roads}
+
+\subsection{LCA con binary lifting}
+\[
+up[v][j]=\text{ancestro de }v\text{ a distancia }2^j.
+\]
+Si se necesitan maximos en caminos:
+\[
+mx[v][j]=\max\text{ peso de arista al subir de }v\text{ hacia }up[v][j].
+\]
+Para responder \(maxEdge(u,v)\), se igualan profundidades acumulando maximos; luego se suben ambos nodos
+desde potencias grandes hacia pequenas hasta llegar al LCA.
+
+\[
+T_{\text{pre}}=\bigO(n\log n),\qquad T_{\text{query}}=\bigO(\log n),\qquad M=\bigO(n\log n).
+\]
+
+\subsection{HLD}
+HLD marca como pesado al hijo de mayor subarbol. Toda arista no pesada es liviana. Si se baja por una arista
+liviana, el tamano del subarbol se reduce al menos a la mitad; por eso cualquier camino raiz-nodo cruza
+\(\bigO(\log n)\) aristas livianas. Entonces un camino \(u\to v\) se descompone en \(\bigO(\log n)\) segmentos
+contiguos sobre un arreglo base.
+
+\boxhead{Cuando usar HLD}
+Consultas o updates sobre caminos de un arbol fijo: suma, maximo, minimo, pintar, agregar valor, comparar
+segmentos, etc. Con un segment tree, cada segmento cuesta \(\bigO(\log n)\), por lo que:
+\[
+T_{\text{path}}=\bigO(\log^2 n).
+\]
+
+\subsection{Imperial Roads}
+Problema tipo: grafo conectado ponderado. Cada consulta obliga a incluir una arista \(e=(u,v,w)\) en el arbol
+de costo minimo que conecta todos los vertices.
+
+Algoritmo:
+\begin{enumerate}
+\item Construir MST \(T\) con Kruskal. Sea \(W\) su peso.
+\item Preprocesar \(T\) para \(maxEdge(u,v)\) con LCA o HLD.
+\item Para query \(e=(u,v,w)\):
+\[
+ans=W+w-\operatorname{maxEdge}_T(u,v).
+\]
+\end{enumerate}
+
+Correctitud: al agregar \(e\) al MST aparece un unico ciclo formado por \(e\) y el camino \(u\to v\) en \(T\).
+Para conservar un arbol que incluya \(e\), hay que eliminar una arista de ese ciclo. El costo se minimiza eliminando
+la arista de mayor peso del camino original. Esta es una aplicacion directa de la propiedad de ciclo del MST.
+
+Complejidad:
+\[
+T=\bigO(m\log m+n\log n+q\log n),\qquad M=\bigO(n\log n+m).
+\]
+
+\subsection{Fools and Roads}
+Problema tipo: en un arbol, muchas consultas \((u,v)\). Para cada arista, contar cuantas rutas \(u\to v\) la usan.
+
+Algoritmo de diferencia en arbol:
+\[
+cnt[u]++,\qquad cnt[v]++,\qquad cnt[\lca(u,v)]-=2.
+\]
+Luego se hace DFS postorder:
+\[
+sub[x]=cnt[x]+\sum_{hijo\ y} sub[y].
+\]
+El valor \(sub[x]\) es la cantidad de caminos que usan la arista \((parent[x],x)\).
+
+Correctitud: cada query agrega dos unidades de flujo en los extremos. Ese flujo sube por el arbol y se cancela en
+el LCA. Por tanto, una arista recibe flujo exactamente cuando esta en el camino entre los extremos.
+
+Complejidad:
+\[
+T=\bigO(n\log n+q\log n+n),\qquad M=\bigO(n\log n).
+\]
+
+\newpage
+
+\section{Dynamic Graphs: rollback DSU y estructuras dinamicas}
+
+\subsection{Offline dynamic connectivity}
+Si hay operaciones de agregar y borrar aristas, pero conocemos toda la secuencia antes de responder, podemos
+resolver offline.
+
+\boxhead{Transformacion clave} Cada arista tiene intervalos de vida \([l,r]\) en los que esta activa. Insertamos
+ese intervalo en los nodos de un segment tree sobre el tiempo que cubren exactamente \([l,r]\).
+
+\begin{lstlisting}
+dfs(node):
+  snap = DSU.snapshot()
+  for edge in node.edges:
+    DSU.union(edge.u, edge.v)
+  if node is leaf:
+    answer queries at that time
+  else:
+    dfs(left); dfs(right)
+  DSU.rollback(snap)
+\end{lstlisting}
+
+\subsection{Rollback DSU}
+Un DSU con rollback guarda en una pila los cambios hechos por cada union. Normalmente no usa path compression,
+porque comprimir caminos modifica muchos padres y seria dificil deshacer. Usa union by size/rank.
+
+Si ademas se pide suma de componente, cada raiz guarda:
+\[
+sum[root]=\sum_{v\in component(root)} value[v].
+\]
+Al unir componentes, se suma. Para rollback, se guardan los valores antiguos de \(parent\), \(size\) y \(sum\).
+
+\subsection{Correctitud}
+Un intervalo de vida \([l,r]\) se descompone en \(\bigO(\log q)\) nodos del segment tree. Para una hoja \(t\),
+el camino desde la raiz hasta esa hoja contiene exactamente los nodos cuyos intervalos cubren \(t\). Por eso, al
+llegar a la hoja, el DSU contiene exactamente las aristas activas en el tiempo \(t\). El rollback restaura el estado
+antes de explorar otra rama.
+
+\subsection{Complejidad}
+Si hay \(m\) intervalos de vida y \(q\) tiempos:
+\[
+T=\bigO(m\log q\cdot T_{\text{union}}),\qquad M=\bigO(m\log q+n).
+\]
+Con union by size sin path compression, \(T_{\text{union}}\) es \(\bigO(\log n)\) en una cota simple, o casi constante
+en practica. Lo importante para examen es justificar el factor \(\log q\) por el segment tree de tiempo.
+
+\subsection{Euler-tour tree vs link-cut tree}
+\begin{center}
+\begin{tabular}{p{0.28\linewidth}p{0.30\linewidth}p{0.30\linewidth}}
+\toprule
+Caso & Estructura & Idea \\
+\midrule
+Bosque dinamico, conectividad, size, suma de componente & Euler-tour tree & tour Euler en BST balanceado; link/cut son split/merge \\
+Bosque dinamico, max/sum/min en camino & Link-cut tree & preferred paths en splay; \texttt{access} expone un camino \\
+Grafo general offline & Rollback DSU & intervalos de vida sobre tiempo \\
+Solo inserciones & DSU normal & componentes monotonicamente se unen \\
+Solo borrados & Procesar al reves & los borrados se vuelven inserciones \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\boxhead{Link-cut tree en una frase} \(\texttt{access}(v)\) reorganiza los preferred paths para que el camino
+desde la raiz representada hasta \(v\) quede en un splay, donde el agregado del camino esta en la raiz.
+
+\boxhead{Euler-tour tree en una frase} Representa cada arbol por la secuencia de su tour Euler guardada en un
+BST balanceado. Si dos vertices pertenecen al mismo BST, estan conectados.
+
+\newpage
+
+\section{Integer structures}
+
+\subsection{Modelo y problema predecessor}
+Se mantiene un conjunto \(S\) de \(n\) enteros de \(w\) bits. El universo es:
+\[
+U=\{0,1,\ldots,2^w-1\},\qquad u=2^w.
+\]
+Operaciones:
+\[
+insert(x),\ delete(x),\ member(x),\ pred(x),\ succ(x).
+\]
+En modelo de comparaciones, predecessor cuesta \(\bigO(\log n)\) con un BST. En word RAM se usan bits y el
+universo para mejorar.
+
+\subsection{van Emde Boas}
+vEB divide el universo en coordenadas high/low:
+\[
+x=(high(x),low(x)),
+\]
+donde cada parte tiene tamano \(\sqrt u\). Guarda:
+\begin{itemize}
+\item \(min,max\);
+\item clusters para las partes altas;
+\item un summary que indica que clusters no estan vacios.
+\end{itemize}
+La recurrencia es:
+\[
+T(u)=T(\sqrt u)+\bigO(1).
+\]
+Como \(u=2^w\), cada llamada divide el numero de bits por \(2\):
+\[
+T(w)=T(w/2)+\bigO(1)=\bigO(\log w)=\bigO(\log\log u).
+\]
+El problema es el espacio:
+\[
+M=\Theta(u)
+\]
+en la version basica.
+
+\subsection{Y-fast trees}
+Y-fast reduce el espacio a lineal. La idea es:
+\begin{itemize}
+\item mantener representantes de buckets en una estructura tipo X-fast;
+\item cada bucket tiene tamano \(\bigO(w)\) y se guarda con una estructura balanceada;
+\item split/merge mantiene buckets de tamano controlado.
+\end{itemize}
+Resultado teorico:
+\[
+T_{\text{op}}=\bigO(\log w)=\bigO(\log\log u) \text{ esperado/amortizado},\qquad M=\bigO(n).
+\]
+Si el universo es enorme y \(n\) es pequeno, Y-fast es mejor respuesta que vEB basico por espacio.
+
+\subsection{Fusion trees}
+Fusion trees usan branching alto \(B=w^{1/5}\). Dentro de un nodo se guardan llaves y se extraen bits criticos
+del trie conceptual para formar sketches. Esos sketches se empaquetan en palabras y se comparan en paralelo.
+La altura baja a:
+\[
+\bigO(\log_B n)=\bigO(\log_w n).
+\]
+En examen, mencionar que depende de operaciones word RAM fuertes; algunas versiones usan multiplicacion, lo
+cual importa si el modelo es AC0 RAM.
+
+\subsection{Ordenamiento de enteros}
+La cota \(\Omega(n\log n)\) aplica al modelo de comparaciones. Con enteros se pueden mirar digitos.
+
+\boxhead{Counting sort}
+Si las llaves estan en universo \(U_d\):
+\[
+T=\bigO(n+U_d),\qquad M=\bigO(U_d).
+\]
+
+\boxhead{Radix sort}
+Partir cada llave en digitos de \(b\) bits. Cada pasada usa counting sort estable:
+\[
+T=\bigO\left((n+2^b)\left\lceil\frac{w}{b}\right\rceil\right).
+\]
+Si \(b=\Theta(\log n)\), entonces \(2^b=\Theta(n)\) y:
+\[
+T=\bigO\left(n\frac{w}{\log n}\right).
+\]
+Si \(w=\bigO(\log n)\), se obtiene tiempo lineal.
+
+\boxhead{Signature sort}
+Para enteros grandes, se reducen llaves a firmas/hashes de \(\bigO(\log n)\) bits por niveles, y luego se aplica
+packed/radix sort. La idea teorica es reducir los bits relevantes sin perder el orden.
+
+\newpage
+
+\section{Patrones de respuesta para problemas Racso}
+
+\subsection{Si aparece un problema de strings}
+Primero intenta ubicarlo en uno de estos moldes:
+\begin{itemize}
+\item Buscar o contar patrones: intervalo en suffix array.
+\item Numero de subcadenas distintas: \(\frac{n(n+1)}2-\sum \LCP\).
+\item Longest common substring: SA de \(A\#B\) y max LCP entre origen distinto.
+\item Ordenar/comparar subcadenas: \(lcp(i,j)\) con RMQ sobre LCP.
+\item Muchos patrones en un texto: Aho-Corasick para ocurrencias, SA si el texto fijo es lo central.
+\item Periodicidad: igualdad de bloques via LCP; si es avanzado, mencionar runs.
+\end{itemize}
+
+\subsection{Si aparece un problema de arboles}
+\begin{itemize}
+\item Una ruta especifica \(u\to v\): LCA o HLD.
+\item Muchas rutas y contar aristas usadas: diferencia en arbol.
+\item Maximo/minimo en path de un arbol fijo: HLD o binary lifting augmentado.
+\item Contar pares de nodos por distancia: centroid decomposition.
+\item Subarboles: Euler tour timestamps.
+\end{itemize}
+
+\subsection{Si aparece dynamic graph}
+\begin{itemize}
+\item Solo inserciones: DSU.
+\item Solo borrados: procesar al reves.
+\item Inserciones y borrados offline: segment tree sobre tiempo + rollback DSU.
+\item Bosque dinamico online con path aggregates: link-cut tree.
+\item Bosque dinamico online con componente/subtree aggregates: Euler-tour tree.
+\item Grafo general online: spanning forests por niveles + Euler-tour trees; es mas teorico.
+\end{itemize}
+
+\subsection{Si aparece integer}
+Siempre empieza definiendo \(n,w,u=2^w\) y el modelo. Luego:
+\begin{itemize}
+\item Predecessor con universo moderado: vEB, \(\bigO(\log\log u)\), espacio \(\Theta(u)\).
+\item Predecessor con espacio lineal: Y-fast, \(\bigO(\log w)\), espacio \(\bigO(n)\).
+\item Predecessor teorico rapido: Fusion tree, \(\bigO(\log_w n)\).
+\item Sorting de enteros: counting/radix si \(w\) es pequeno; signature si \(w\) es grande.
+\end{itemize}
+
+\section{Errores que quitan puntos}
+\begin{itemize}
+\item Confundir rango cerrado \([l,r]\) con medio abierto \([l,r)\) en RMQ.
+\item Decir ``uso suffix array'' sin explicar intervalo contiguo o LCP.
+\item En HLD con valores en aristas, olvidar excluir la posicion del LCA.
+\item Usar path compression en rollback DSU.
+\item Para Imperial Roads, olvidar que se fuerza una arista y se quita la maxima del ciclo.
+\item Para bordes, resolver solo bordes de la cadena completa cuando el problema pide todas las subcadenas.
+\item No mencionar memoria. En integer, vEB tiene espacio \(\Theta(u)\), no lineal.
+\item Usar int para cantidades que pueden ser \(\Theta(n^2)\): subcadenas, pares de nodos, sumas de LCP.
+\end{itemize}
+
+\section{Resumen final de formulas y complejidades}
+Esta tabla es para repasar en los ultimos minutos antes de entrar.
+
+\begin{center}
+\begin{tabular}{p{0.25\linewidth}p{0.42\linewidth}p{0.22\linewidth}}
+\toprule
+Tema & Formula / idea que debes recordar & Costo \\
+\midrule
+Sparse table &
+\(st[k][i]=op(st[k-1][i],st[k-1][i+2^{k-1}])\). Query con dos bloques de tamano \(2^k\). &
+Build \(\bigO(n\log n)\), query \(\bigO(1)\), memoria \(\bigO(n\log n)\). \\
+\addlinespace
+LCA binary lifting &
+\(up[v][j]\) ancestro \(2^j\). Para max edge, guardar \(mx[v][j]\). &
+Pre \(\bigO(n\log n)\), query \(\bigO(\log n)\). \\
+\addlinespace
+HLD &
+Light edge reduce subarbol al menos a la mitad. Path \(u\to v\) son \(\bigO(\log n)\) segmentos. &
+Pre \(\bigO(n)\), path con segtree \(\bigO(\log^2 n)\). \\
+\addlinespace
+Suffix array &
+\(\rankv[i]\) es posicion del sufijo \(i\) en \(\SA\). \(\LCP[p]=lcp(\SA[p-1],\SA[p])\). &
+SA \(\bigO(n\log n)\) o \(\bigO(n\log^2 n)\), Kasai \(\bigO(n)\). \\
+\addlinespace
+LCP arbitrario &
+Si \(a=\rankv[i]<b=\rankv[j]\), \(lcp(i,j)=\min \LCP[a+1..b]\). &
+RMQ build \(\bigO(n\log n)\), query \(\bigO(1)\). \\
+\addlinespace
+Subcadenas distintas &
+\(\#=\frac{n(n+1)}2-\sum_i \LCP[i]\). &
+\(\bigO(n)\) despues de SA+LCP. \\
+\addlinespace
+Imperial Roads &
+\(ans=W+w-\operatorname{maxEdge}_T(u,v)\). &
+Kruskal \(\bigO(m\log m)\), query \(\bigO(\log n)\). \\
+\addlinespace
+Fools and Roads &
+\(cnt[u]++,cnt[v]++,cnt[\lca(u,v)]-=2\); postorder acumula. &
+\(\bigO((n+q)\log n)\). \\
+\addlinespace
+Centroid paths \(\le C\) &
+En centroid: contar pares de distancias con two pointers; restar pares del mismo subarbol. &
+\(\bigO(n\log^2 n)\), memoria \(\bigO(n)\). \\
+\addlinespace
+Rollback DSU &
+Arista activa en intervalo \([l,r]\); guardar en segment tree de tiempo; DFS con snapshot/rollback. &
+\(\bigO(m\log q)\) uniones, memoria \(\bigO(m\log q+n)\). \\
+\addlinespace
+vEB &
+\(T(u)=T(\sqrt u)+\bigO(1)=\bigO(\log\log u)\). &
+Tiempo \(\bigO(\log\log u)\), memoria \(\Theta(u)\). \\
+\addlinespace
+Radix sort &
+\(\bigO((n+2^b)\lceil w/b\rceil)\), elegir \(b=\Theta(\log n)\). &
+\(\bigO(nw/\log n)\), lineal si \(w=\bigO(\log n)\). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\boxhead{Frase final para casi toda respuesta}
+``La estructura es correcta porque mantiene exactamente la informacion que la consulta necesita: minimo de
+rangos canonicos, prefijo comun de sufijos, maximo en un camino, componentes activas en un tiempo, o bits
+relevantes del universo. El algoritmo no enumera objetos cuadraticos; los comprime en intervalos, caminos,
+clusters, buckets o descomposiciones balanceadas.''
+
+\end{document}
