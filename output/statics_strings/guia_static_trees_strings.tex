@@ -7,6 +7,7 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{titlesec}
+\usepackage{microtype}
 
 \titleformat{\section}{\Large\bfseries}{\thesection}{0.7em}{}
 \titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
@@ -30,6 +31,7 @@
 \date{}
 
 \begin{document}
+\sloppy
 \maketitle
 
 \section*{Como usar esta guia}
@@ -104,6 +106,219 @@ Para casi cualquier problema de estos temas escribe:
 \end{enumerate}
 
 \newpage
+\section{Diccionario fundamental desde cero}
+
+Esta seccion existe porque en examen no basta decir ``uso sparse table'' o
+``uso binary lifting''. Debes poder explicar que es la estructura, que guarda,
+por que responde la consulta y por que su complejidad es la que dices.
+
+\subsection{Preprocesamiento}
+Preprocesar significa gastar tiempo antes de recibir o responder consultas para
+construir informacion auxiliar. La idea central de las estructuras estaticas es:
+si el arreglo, arbol o string no cambia, conviene calcular tablas una sola vez
+para responder muchas preguntas rapidamente.
+
+Ejemplo: si te dan un arreglo fijo y $10^5$ consultas de minimo en rango, no
+conviene recorrer el rango completo en cada consulta. Conviene construir una
+tabla de respuestas parciales.
+
+\subsection{Query o consulta}
+Una query es una pregunta que se hace sobre la estructura ya construida. En
+estos temas las queries tipicas son:
+\begin{itemize}[leftmargin=*]
+\item ``cual es el minimo de $A[l..r]$?''
+\item ``cual es el LCA de $u$ y $v$?''
+\item ``cuantas veces aparece el patron $P$ en el texto $S$?''
+\item ``cual es el LCP de dos sufijos?''
+\end{itemize}
+
+\subsection{Operacion idempotente}
+Una operacion es idempotente si repetir un elemento no cambia la respuesta:
+\[
+\min(x,x)=x,\qquad \max(x,x)=x,\qquad \gcd(x,x)=x.
+\]
+Esto es fundamental para sparse table. En una consulta de minimo podemos cubrir
+un intervalo con dos bloques que se solapan, porque si un elemento queda contado
+dos veces no altera el minimo. Para suma esto no funciona: $x+x\ne x$.
+
+\subsection{Sparse table}
+Una \textbf{sparse table} es una tabla de preprocesamiento para arreglos
+estaticos. Guarda respuestas de rangos cuya longitud es potencia de dos:
+\[
+1,2,4,8,16,\ldots
+\]
+No guarda todos los rangos posibles, porque eso seria $\bigO(n^2)$. Guarda solo
+rangos ``canonicos'':
+\[
+st[k][i] = \text{respuesta del rango que empieza en }i\text{ y mide }2^k.
+\]
+Para minimos:
+\[
+st[k][i]=\min(A[i],A[i+1],\ldots,A[i+2^k-1]).
+\]
+
+La razon por la que sirve es que cualquier rango $[l,r]$ contiene una potencia
+de dos grande. Si $2^k\le r-l+1$, entonces dos bloques de longitud $2^k$ cubren
+todo el intervalo: uno pegado a la izquierda y otro pegado a la derecha.
+
+\subsection{Tabla de logs}
+La sparse table suele necesitar:
+\[
+log[len]=\lfloor \log_2(len)\rfloor.
+\]
+Esto se puede precomputar con:
+\[
+log[1]=0,\qquad log[i]=log[\lfloor i/2\rfloor]+1.
+\]
+En papel no necesitas codigo, pero si debes saber que obtener $k$ para una
+consulta cuesta $\bigO(1)$ si ya tienes esta tabla.
+
+\subsection{Arbol enraizado, ancestro y profundidad}
+Un arbol enraizado es un arbol donde escoges un nodo como raiz. Desde ahi se
+define:
+\begin{itemize}[leftmargin=*]
+\item \textbf{padre}: el nodo anterior en el camino hacia la raiz;
+\item \textbf{ancestro}: un nodo que aparece al subir desde $v$ hacia la raiz;
+\item \textbf{profundidad}: numero de aristas desde la raiz hasta el nodo;
+\item \textbf{subarbol}: un nodo y todos sus descendientes.
+\end{itemize}
+
+\subsection{LCA}
+El \textbf{Lowest Common Ancestor} de $u$ y $v$ es el ancestro comun de ambos
+que esta mas abajo, es decir, el de mayor profundidad. Si uno de los nodos es
+ancestro del otro, entonces el LCA es ese mismo nodo.
+
+Por que aparece tanto: muchas preguntas sobre caminos en arbol se parten en dos
+tramos usando el LCA:
+\[
+u\to \LCA(u,v)\quad\text{y}\quad \LCA(u,v)\to v.
+\]
+
+\subsection{Binary lifting}
+\textbf{Binary lifting} significa subir en potencias de dos. En lugar de guardar
+solo el padre inmediato de cada nodo, guardas:
+\[
+up[v][0]=\text{padre de }v,
+\]
+\[
+up[v][1]=\text{ancestro }2\text{ niveles arriba},
+\]
+\[
+up[v][2]=\text{ancestro }4\text{ niveles arriba},
+\]
+y en general:
+\[
+up[v][j]=\text{ancestro }2^j\text{ niveles arriba de }v.
+\]
+
+La formula de construccion es:
+\[
+up[v][j]=up[\,up[v][j-1]\,][j-1].
+\]
+Se lee asi: para subir $2^j$, sube primero $2^{j-1}$ y desde ahi sube otros
+$2^{j-1}$.
+
+La idea funciona porque cualquier numero $k$ se puede escribir como suma de
+potencias de dos. Por ejemplo, para subir $13$ niveles:
+\[
+13=8+4+1.
+\]
+Entonces saltas $8$, luego $4$, luego $1$.
+
+\subsection{Euler tour}
+Un \textbf{Euler tour} de un arbol enraizado es la secuencia de nodos visitados
+por un DFS cuando entras y cuando vuelves de hijos. Para LCA no se guarda solo
+la primera visita: se guarda la caminata completa. Tambien se guarda la
+profundidad de cada visita.
+
+Ejemplo conceptual: si al recorrer el arbol pasas por nodos
+\[
+E=[0,1,3,1,4,1,0,2,0],
+\]
+entonces guardas tambien:
+\[
+D=[0,1,2,1,2,1,0,1,0].
+\]
+El LCA de dos nodos se convierte en buscar la minima profundidad entre sus
+primeras apariciones.
+
+\subsection{Rank en strings}
+En suffix array, \textbf{rank[i]} significa la posicion lexicografica del sufijo
+que empieza en $i$. Si $rank[i]<rank[j]$, entonces:
+\[
+S[i..] < S[j..].
+\]
+El rank es el inverso del suffix array:
+\[
+\SA[rank[i]]=i.
+\]
+
+\subsection{Suffix array}
+El \textbf{suffix array} es un arreglo que lista todos los sufijos de un string
+en orden lexicografico. Si:
+\[
+S=\texttt{banana\$},
+\]
+sus sufijos son:
+\[
+\texttt{banana\$},\texttt{anana\$},\texttt{nana\$},\texttt{ana\$},
+\texttt{na\$},\texttt{a\$},\texttt{\$}.
+\]
+Ordenados lexicograficamente quedan:
+\[
+\texttt{\$},\texttt{a\$},\texttt{ana\$},\texttt{anana\$},
+\texttt{banana\$},\texttt{na\$},\texttt{nana\$}.
+\]
+El suffix array guarda sus posiciones iniciales:
+\[
+\SA=[6,5,3,1,0,4,2].
+\]
+
+\subsection{LCP}
+\textbf{LCP} significa longest common prefix: prefijo comun mas largo. Por
+ejemplo:
+\[
+\operatorname{lcp}(\texttt{anana\$},\texttt{ana\$})=3
+\]
+porque ambas empiezan con \texttt{ana}.
+
+El arreglo LCP del suffix array guarda el LCP entre sufijos vecinos en orden
+lexicografico. Esto es poderoso porque muchos problemas de substrings repetidas
+se vuelven preguntas sobre vecinos o minimos en rangos del LCP.
+
+\subsection{Sentinela}
+El sentinela \texttt{\$} es un caracter artificial menor que todos los demas y
+se pone al final del string. Sirve para que todos los sufijos sean comparables
+sin casos ambiguos. Tambien asegura que ningun sufijo sea igual a otro.
+
+\subsection{Separadores entre strings}
+Cuando concatenas dos strings, por ejemplo para longest common substring, usas
+separadores que no aparecen en ningun string:
+\[
+T=A\#B\$.
+\]
+Esto evita que una subcadena cruce artificialmente del final de $A$ al inicio de
+$B$.
+
+\subsection{Como decidir rapido que definicion necesitas}
+\begin{center}
+\begin{tabular}{p{0.34\linewidth}p{0.52\linewidth}}
+\toprule
+Palabra del enunciado & Definicion que debes activar \\
+\midrule
+rango estatico & sparse table, RMQ, operacion idempotente \\
+ancestro, camino en arbol & LCA, profundidad, binary lifting \\
+subir $k$ niveles & binary lifting, level ancestor \\
+subarbol & Euler tour con tiempos de entrada/salida \\
+patron en texto fijo & suffix array, intervalo lexicografico \\
+substring repetida & LCP, vecinos en suffix array \\
+comparar substrings & rank, LCP arbitrario, RMQ sobre LCP \\
+dos strings & separadores, suffix array conjunto, origen de sufijo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
 \section{RMQ en arrays estaticos}
 
 \subsection{Definicion}
@@ -120,6 +335,11 @@ El slide de RMQ enfatiza tres metas:
 \end{itemize}
 
 \subsection{Sparse table: la version que debes dominar}
+La sparse table es una matriz donde las filas representan tamanos de bloque y
+las columnas representan posiciones iniciales. La fila $0$ guarda bloques de
+tamano $1$, la fila $1$ bloques de tamano $2$, la fila $2$ bloques de tamano
+$4$, y asi sucesivamente.
+
 La sparse table guarda respuestas para bloques de longitud potencia de dos:
 \[
 st[k][i]=\min(A[i],\ldots,A[i+2^k-1]).
@@ -142,6 +362,11 @@ La respuesta:
 \[
 \min(st[k][l], st[k][r-2^k+1]).
 \]
+
+Textualmente: tomo el bloque mas grande de potencia de dos que cabe dentro de
+la consulta. Pongo una copia de ese bloque empezando en $l$ y otra terminando en
+$r$. Entre ambos cubren todo $[l,r]$. Como estoy usando minimo, no importa si se
+superponen.
 
 \subsubsection*{Por que funciona}
 Los dos bloques cubren todo el intervalo. Pueden solaparse, pero eso no importa
@@ -167,6 +392,22 @@ Sparse table no soporta updates faciles. Si el problema dice:
 \end{itemize}
 entonces piensa en segment tree, no en sparse table. Sparse table es para
 datos estaticos y operaciones idempotentes como min/max/gcd.
+
+\subsection{Como escribir sparse table en una solucion teorica}
+Una respuesta fuerte en papel puede decir:
+\begin{enumerate}[leftmargin=*]
+\item Preproceso $st[k][i]$, el minimo del subarreglo de longitud $2^k$ que
+empieza en $i$.
+\item Caso base: $st[0][i]=A[i]$.
+\item Transicion: parto el bloque de longitud $2^k$ en dos bloques de longitud
+$2^{k-1}$.
+\item Para consultar $[l,r]$, tomo $k=\lfloor\log_2(r-l+1)\rfloor$ y combino
+los dos bloques extremos.
+\item Correctitud: los bloques cubren el intervalo y el solapamiento no afecta
+por idempotencia del minimo.
+\item Complejidad: $\bigO(n\log n)$ construccion, $\bigO(1)$ query,
+$\bigO(n\log n)$ memoria.
+\end{enumerate}
 
 \subsection{RMQ lineal: macro/micro bloques}
 Los slides de static trees mencionan la meta optima $\bigO(n)$ espacio y
@@ -238,22 +479,86 @@ para implementar rapido, pero si es una herramienta teorica fuerte.
 El \textbf{Lowest Common Ancestor} de dos nodos $u,v$ en un arbol enraizado es
 el ancestro comun mas profundo de ambos.
 
+Ejemplo textual: si el camino desde la raiz hasta $u$ es
+\[
+raiz\to a\to b\to u
+\]
+y el camino desde la raiz hasta $v$ es
+\[
+raiz\to a\to c\to v,
+\]
+entonces los ancestros comunes son $raiz$ y $a$. El mas profundo es $a$, por lo
+tanto $\LCA(u,v)=a$.
+
+\subsection{Por que LCA resuelve caminos}
+En un arbol hay un unico camino simple entre dos nodos. Si quieres responder
+algo sobre el camino entre $u$ y $v$, el LCA es el punto donde ese camino se
+parte:
+\[
+u \to \LCA(u,v) \to v.
+\]
+Por eso LCA aparece en distancia, maximo peso en camino, minimo peso en camino,
+numero de aristas, ancestros y problemas tipo ``Imperial Roads''.
+
 \subsection{Solucion simple: binary lifting}
 Preprocesas:
 \[
 up[v][j] = \text{ancestro }2^j\text{ de }v.
 \]
+Esto es una tabla de saltos. La columna $0$ guarda saltos de una arista; la
+columna $1$ guarda saltos de dos aristas; la columna $2$ guarda saltos de
+cuatro aristas; y asi sucesivamente.
+
+La construccion se basa en:
+\[
+up[v][0]=parent[v],
+\]
+\[
+up[v][j]=up[\,up[v][j-1]\,][j-1].
+\]
+Se lee asi: para subir $2^j$ niveles desde $v$, primero subes $2^{j-1}$ niveles
+y desde ese nodo vuelves a subir $2^{j-1}$ niveles.
+
 Para responder:
 \begin{enumerate}[leftmargin=*]
-\item Igualas profundidades.
-\item Subes ambos nodos desde potencias grandes a pequenas hasta que sus padres
-coincidan.
-\item Ese padre es el LCA.
+\item Si un nodo esta mas profundo que el otro, lo subes hasta que ambos tengan
+la misma profundidad.
+\item Si despues de igualarlos son el mismo nodo, ese nodo era ancestro del otro
+y ya es la respuesta.
+\item Si son distintos, subes ambos al mismo tiempo desde potencias grandes a
+pequenas.
+\item Cuando $up[u][j]\ne up[v][j]$, puedes subir ambos $2^j$ niveles sin pasar
+por encima del LCA.
+\item Al final, $u$ y $v$ quedan justo debajo del LCA; entonces $parent[u]$ es
+la respuesta.
 \end{enumerate}
 Complejidad:
 \[
 \bigO(n\log n)\text{ preproceso},\quad \bigO(\log n)\text{ query}.
 \]
+
+\subsection{Correctitud de binary lifting}
+La primera fase no cambia el LCA: si un nodo esta mas abajo, los vertices que
+estan estrictamente debajo de la profundidad del otro nodo no pueden ser
+ancestros comunes. Por eso se pueden eliminar subiendo.
+
+La segunda fase mantiene el invariante de que $u$ y $v$ siguen debajo del LCA,
+pero en ramas distintas. Se prueban saltos grandes primero para acercarse lo mas
+posible al LCA. Si un salto llevara a ambos al mismo ancestro, ese salto alcanza
+o pasa el LCA, asi que no se toma. Cuando ya no hay salto valido, los padres de
+ambos coinciden y ese padre es el LCA.
+
+\subsection{Binary lifting para subir k niveles}
+La misma tabla resuelve \textbf{Level Ancestor}. Para subir $k$ niveles desde
+$v$, escribes $k$ como suma de potencias de dos. Por ejemplo:
+\[
+13=8+4+1.
+\]
+Entonces haces:
+\[
+v\leftarrow up[v][3],\quad v\leftarrow up[v][2],\quad v\leftarrow up[v][0].
+\]
+Cada bit prendido de $k$ representa un salto. Esto cuesta $\bigO(\log n)$.
 
 \subsection{Reduccion a RMQ con Euler tour}
 Haces un Euler tour del arbol. Guardas:
@@ -279,6 +584,11 @@ En el Euler tour, cada paso sube o baja una arista. Por eso:
 El problema LCA se reduce a $\pm 1$ RMQ, que puede resolverse en $\bigO(n)$
 espacio y $\bigO(1)$ query con macro/micro.
 
+Que significa ``$\pm1$ RMQ'': es un RMQ sobre un arreglo donde dos valores
+consecutivos difieren exactamente en uno. En el Euler tour, la profundidad sube
+o baja una arista en cada paso, por eso aparece esta propiedad. Esa restriccion
+permite usar bloques pequenos y precomputar respuestas segun la forma del bloque.
+
 \subsection{Correctitud}
 Entre la primera aparicion de $u$ y la primera aparicion de $v$ en el Euler tour,
 el recorrido pasa por todos los nodos necesarios para ir de uno al otro en el
@@ -298,6 +608,16 @@ probablemente necesitas LCA. Para distancias:
 \[
 \operatorname{dist}(u,v)=depth[u]+depth[v]-2depth[\LCA(u,v)].
 \]
+
+\subsection{Como decidir entre las dos soluciones de LCA}
+\begin{itemize}[leftmargin=*]
+\item Si quieres una solucion sencilla de explicar: binary lifting.
+\item Si el problema conecta explicitamente LCA con RMQ: Euler tour + RMQ.
+\item Si piden query $\bigO(1)$ con espacio lineal: Euler tour + $\pm1$ RMQ
+macro/micro.
+\item Si hay pesos en aristas y consultas de maximo/minimo en camino: binary
+lifting puede guardar tambien el maximo/minimo de cada salto.
+\end{itemize}
 
 \newpage
 \section{Level Ancestor}
@@ -352,6 +672,19 @@ Los slides definen:
 \item Sentinela \texttt{\$}: caracter menor que todos que aparece al final.
 \end{itemize}
 
+\subsection{Subcadena, subsecuencia, prefijo y sufijo}
+Estos terminos se parecen, pero no significan lo mismo:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Subcadena} o substring: bloque contiguo. En \texttt{banana},
+\texttt{ana} es subcadena.
+\item \textbf{Subsecuencia}: caracteres en orden, pero no necesariamente
+contiguos. En \texttt{banana}, \texttt{bnn} es subsecuencia, no subcadena.
+\item \textbf{Prefijo}: subcadena que empieza en la posicion $0$.
+\item \textbf{Sufijo}: subcadena que termina en la ultima posicion.
+\end{itemize}
+Suffix array trabaja con sufijos, pero sirve para subcadenas porque toda
+subcadena $S[l..r]$ es prefijo del sufijo $S[l..]$.
+
 \subsection{Por que importa el sentinela}
 El sentinela evita casos molestos donde un sufijo es prefijo de otro. Si
 \texttt{\$} es menor que todo, entonces las comparaciones lexicograficas son
@@ -361,6 +694,11 @@ totales y limpias.
 Dos cadenas se comparan por el primer caracter donde difieren. Si una termina
 antes y es prefijo propio de la otra, la mas corta es menor. Esta definicion es
 la base de suffix array.
+
+\subsection{Idea clave para problemas}
+Si una subcadena $P$ aparece en $S$ empezando en la posicion $i$, entonces el
+sufijo $S[i..]$ empieza con $P$. Por eso buscar una subcadena se transforma en
+buscar sufijos que tienen cierto prefijo.
 
 \subsection{Hint de clasificacion}
 Si el problema habla de:
@@ -385,6 +723,43 @@ El suffix array de $S$ es una permutacion $A$ de posiciones:
 para todo $i$. Guarda exactamente $n$ enteros, por eso es mas compacto que un
 suffix tree.
 
+Mas textualmente: escribes todos los sufijos de $S$, los ordenas como palabras
+de diccionario y guardas solo el indice donde empieza cada sufijo. No guardas
+las cadenas completas.
+
+Ejemplo:
+\[
+S=\texttt{banana\$}.
+\]
+Los sufijos son:
+\[
+\begin{array}{c|l}
+0 & \texttt{banana\$}\\
+1 & \texttt{anana\$}\\
+2 & \texttt{nana\$}\\
+3 & \texttt{ana\$}\\
+4 & \texttt{na\$}\\
+5 & \texttt{a\$}\\
+6 & \texttt{\$}
+\end{array}
+\]
+Ordenados:
+\[
+\begin{array}{c|l}
+6 & \texttt{\$}\\
+5 & \texttt{a\$}\\
+3 & \texttt{ana\$}\\
+1 & \texttt{anana\$}\\
+0 & \texttt{banana\$}\\
+4 & \texttt{na\$}\\
+2 & \texttt{nana\$}
+\end{array}
+\]
+Entonces:
+\[
+\SA=[6,5,3,1,0,4,2].
+\]
+
 \subsection{Por que sirve}
 Ordenar sufijos convierte busqueda de patrones en busqueda binaria:
 \begin{itemize}[leftmargin=*]
@@ -392,6 +767,20 @@ Ordenar sufijos convierte busqueda de patrones en busqueda binaria:
 \item Todos esos sufijos estan consecutivos en el suffix array.
 \item Por tanto, las ocurrencias son un intervalo en $\SA$.
 \end{itemize}
+
+La frase ``intervalo en el suffix array'' es clave. Si todos los sufijos que
+empiezan con \texttt{ana} estan ordenados lexicograficamente, no pueden quedar
+separados por un sufijo que no empieza con \texttt{ana}. Todos comparten el
+mismo prefijo, asi que forman un bloque contiguo.
+
+\subsection{Rank inverso}
+Ademas de $\SA$, normalmente se guarda:
+\[
+rank[i]=\text{posicion del sufijo }S[i..]\text{ dentro de }\SA.
+\]
+Si $\SA=[6,5,3,1,0,4,2]$, entonces $rank[3]=2$ porque el sufijo que empieza en
+$3$ aparece en la posicion $2$ del suffix array. Esto permite comparar sufijos
+en $\bigO(1)$: menor rank significa menor sufijo.
 
 \subsection{Aplicaciones de examen}
 \begin{itemize}[leftmargin=*]
@@ -419,6 +808,18 @@ Manber--Myers ordena sufijos por prefijos de longitud creciente:
 \]
 Mantiene $rank[i]$: clase lexicografica del prefijo de longitud actual que
 empieza en $i$.
+
+Al inicio solo sabes ordenar por el primer caracter. Despues usas esa
+informacion para ordenar por dos caracteres, luego por cuatro, luego por ocho.
+Cuando la longitud considerada supera $n$, ordenar esos prefijos equivale a
+ordenar los sufijos completos.
+
+\subsection{Que es una clase o rank temporal}
+Dos posiciones tienen el mismo rank temporal si sus prefijos de la longitud
+actual son iguales. Por ejemplo, en la primera ronda, todas las posiciones con
+caracter \texttt{a} tienen el mismo rank, todas las posiciones con
+\texttt{b} otro rank, etc. En rondas posteriores el rank representa bloques mas
+largos.
 
 \subsection{Paso inductivo}
 Si ya conoces ranks para longitud $2^k$, entonces el prefijo de longitud
@@ -469,6 +870,16 @@ Para suffix array $\SA$:
 \]
 Mide cuanto comparten sufijos vecinos.
 
+Ejemplo con \texttt{banana\$}: los sufijos vecinos \texttt{ana\$} y
+\texttt{anana\$} tienen LCP $3$, porque comparten \texttt{ana}. Los sufijos
+\texttt{na\$} y \texttt{nana\$} tienen LCP $2$, porque comparten \texttt{na}.
+
+\subsection{Por que solo vecinos}
+El LCP array guarda LCP entre vecinos porque el orden lexicografico junta sufijos
+parecidos. Si quieres detectar repeticiones largas, normalmente aparecen como
+LCP grande entre sufijos cercanos. Si quieres el LCP de sufijos no vecinos, lo
+obtienes con RMQ sobre los LCP intermedios.
+
 \subsection{LCP arbitrario entre dos sufijos}
 Si los sufijos que empiezan en $i$ y $j$ estan en posiciones $a$ y $b$ del
 suffix array, con $a<b$, entonces:
@@ -476,6 +887,10 @@ suffix array, con $a<b$, entonces:
 \operatorname{lcp}(i,j)=\min(\LCP[a+1],\ldots,\LCP[b]).
 \]
 Esto es una RMQ sobre el arreglo LCP.
+
+Textualmente: para saber cuanto comparten dos sufijos lejanos en el suffix
+array, miras el tramo entre ellos. El prefijo comun de todos los sufijos de ese
+tramo esta limitado por el menor LCP entre vecinos. Por eso aparece un minimo.
 
 \subsection{Correctitud}
 Entre dos sufijos en orden lexicografico, todos los sufijos intermedios comparten
@@ -491,6 +906,19 @@ sufijos cualesquiera es el minimo LCP en el rango entre sus posiciones.
 \item Ordenar substrings.
 \item Resolver problemas donde muchas queries piden igualdad de substrings.
 \end{itemize}
+
+\subsection{Plantilla de examen para SA + LCP}
+Cuando uses suffix array y LCP, escribe:
+\begin{enumerate}[leftmargin=*]
+\item Construyo $\SA$ para ordenar todos los sufijos.
+\item Construyo $rank$ para saber la posicion de cada sufijo en $\SA$.
+\item Construyo $\LCP$ entre sufijos vecinos.
+\item Si necesito LCP arbitrario, preproceso RMQ sobre $\LCP$.
+\item La correctitud viene de que el orden lexicografico agrupa sufijos con
+prefijos comunes.
+\item La complejidad depende de la construccion de $\SA$: $\bigO(n\log n)$ con
+Manber--Myers o $\bigO(n)$ con DC3/SA-IS.
+\end{enumerate}
 
 \subsection{Hint de clasificacion}
 Si ves comparaciones repetidas de substrings, no compares caracter por caracter.
