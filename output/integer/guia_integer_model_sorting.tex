@@ -1,0 +1,862 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+
+\newcommand{\bigO}{O}
+\newcommand{\lgw}{\log w}
+\newcommand{\lgn}{\log n}
+\newcommand{\lgu}{\log u}
+\newcommand{\pred}{\operatorname{pred}}
+\newcommand{\succop}{\operatorname{succ}}
+\newcommand{\rankop}{\operatorname{rank}}
+\newcommand{\Sketch}{\operatorname{Sketch}}
+
+\title{Integer Data Structures y Ordenamiento de Enteros para el Final de EDA\\
+\large Guia desde cero, orientada a resolver problemas teoricos}
+\author{}
+\date{}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\section*{Como usar esta guia}
+Esta guia cubre los PDFs de la carpeta \texttt{integer/}. Esta escrita para
+entender el tema desde cero, con foco en problemas teoricos de examen: definir
+el modelo, reconocer el problema, escoger la estructura, justificar correctitud
+y cerrar complejidad.
+
+PDFs cubiertos:
+\begin{itemize}[leftmargin=*]
+\item \texttt{eda\_slides\_06\_integer.pdf}: modelos, predecessor, van Emde
+Boas, X-fast trees, Y-fast trees.
+\item \texttt{Estructuras\_de\_Datos\_Avanzadas\_\_\_Modelo\_de\_enteros\_II.pdf}:
+RAM AC0 y Fusion Trees.
+\item \texttt{Estructuras\_de\_Datos\_Avanzadas\_\_\_Ordenamiento\_en\_tiempo\_lineal.pdf}:
+ordenamiento de enteros, equivalencia con priority queues y signature sort.
+\end{itemize}
+
+\tableofcontents
+\newpage
+
+\section{Mapa mental para clasificar problemas de integer}
+
+\subsection{Primera pregunta: el dominio importa?}
+En el modelo de comparaciones, solo puedes preguntar si $a<b$. En integer
+structures puedes usar que las llaves son enteros de $w$ bits:
+\[
+U=\{0,1,\ldots,2^w-1\}.
+\]
+Eso permite usar bits, tries, hashing, particion por digitos y operaciones
+word-RAM. La primera pregunta de clasificacion es:
+\begin{quote}
+El problema solo compara elementos, o explota que son enteros de rango acotado?
+\end{quote}
+
+\subsection{Segunda pregunta: es sorting o predecessor?}
+\begin{center}
+\begin{tabular}{p{0.30\linewidth}p{0.36\linewidth}p{0.24\linewidth}}
+\toprule
+Problema & Frases tipicas & Herramientas \\
+\midrule
+Predecessor/successor & mayor menor que $x$, siguiente, anterior & vEB, X-fast, Y-fast, Fusion Tree \\
+Diccionario dinamico & insert/delete/member & hashing, tries, integer dictionaries \\
+Ordenamiento & ordenar $n$ enteros de $w$ bits & counting, radix, signature sort \\
+Priority queue & insert, find-min, delete-min & equivalencia con sorting \\
+Busqueda por bits & prefijos, trie binario, universe & vEB, X-fast, Fusion Tree sketches \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Tercera pregunta: que parametros dominan?}
+En integer no basta decir $\bigO(\log n)$. Debes mirar:
+\begin{itemize}[leftmargin=*]
+\item $n$: cantidad de llaves almacenadas.
+\item $w$: bits por palabra/llave.
+\item $u=2^w$: tamano del universo.
+\item espacio: $\Theta(u)$ puede ser imposible si $u$ es enorme.
+\item modelo: word RAM, AC0 RAM, cell probe, pointer machine.
+\end{itemize}
+
+\subsection{Checklist de respuesta de examen}
+\begin{enumerate}[leftmargin=*]
+\item Define el universo $U$ y el tamano de palabra $w$.
+\item Di si el modelo permite operaciones bitwise, shifts, multiplicacion o no.
+\item Identifica si se necesita predecessor, successor, insert/delete o sorting.
+\item Escoge estructura: vEB, X-fast, Y-fast, Fusion Tree, radix/signature sort.
+\item Explica el invariante: clusters, summaries, hash tables, sketches, trie.
+\item Justifica complejidad en funcion de $n,w,u$.
+\item Menciona el trade-off de espacio si aplica.
+\end{enumerate}
+
+\newpage
+\section{Diccionario fundamental desde cero}
+
+\subsection{Palabra de maquina}
+Una palabra de maquina es un bloque de $w$ bits que la RAM puede manejar en
+$\bigO(1)$ tiempo. Si $w=64$, una palabra puede guardar enteros entre $0$ y
+$2^{64}-1$.
+
+En teoria se deja $w$ como parametro. Muchas complejidades se escriben como
+$\bigO(\log w)$, $\bigO(\log_w n)$ o $\bigO(\log\log u)$.
+
+\subsection{Universo}
+El universo $U$ es el conjunto de posibles llaves:
+\[
+U=\{0,1,\ldots,u-1\}.
+\]
+Si las llaves tienen $w$ bits:
+\[
+u=2^w,\qquad w=\log_2 u.
+\]
+
+\subsection{Transdichotomous RAM}
+El modelo transdichotomous RAM une dos mundos: el tamano de palabra depende del
+tamano del problema. Normalmente se asume:
+\[
+w\ge \log S,
+\]
+donde $S$ es el espacio usado o el tamano del input. Esto permite indexar la
+memoria con una palabra.
+
+\subsection{Word RAM}
+Word RAM es el modelo donde una palabra de $w$ bits permite operaciones estilo C
+en $\bigO(1)$:
+\begin{itemize}[leftmargin=*]
+\item suma/resta;
+\item comparacion;
+\item bitwise AND/OR/XOR;
+\item shifts;
+\item a veces multiplicacion, dependiendo del submodelo.
+\end{itemize}
+Integer data structures explotan estas operaciones para superar barreras del
+modelo de comparaciones.
+
+\subsection{RAM AC0}
+RAM AC0 permite operaciones realizables por circuitos de profundidad constante
+con fan-in/fan-out no acotado. En los slides se enfatiza:
+\begin{itemize}[leftmargin=*]
+\item operaciones bitwise si se consideran $\bigO(1)$;
+\item multiplicacion no esta permitida por definicion;
+\item es un modelo mas restringido que word RAM con multiplicacion.
+\end{itemize}
+Esto importa porque algunos trucos de Fusion Trees usan multiplicacion para
+comprimir bits. Si el modelo no la permite, necesitas variantes mas cuidadosas.
+
+\subsection{Cell probe}
+Cell probe cuenta solo lecturas y escrituras de memoria. La computacion interna
+es gratis. Sirve para lower bounds: si incluso con computacion gratis necesitas
+muchas probes, entonces ningun algoritmo real puede ser mas rapido.
+
+\subsection{Pointer machine}
+En pointer machine no puedes indexar memoria arbitrariamente como en word RAM.
+Sigues punteros entre nodos. Es un modelo mas debil para integer tricks porque
+no puedes usar aritmetica de bits de forma tan agresiva.
+
+\subsection{Predecessor y successor}
+Dado un conjunto dinamico $S\subseteq U$:
+\[
+\pred(x)=\max\{y\in S:y<x\},
+\]
+\[
+\succop(x)=\min\{y\in S:y>x\}.
+\]
+Nota: algunos slides tienen un typo en successor como max; conceptualmente
+successor es el minimo elemento mayor que $x$.
+
+\subsection{Operaciones del problema predecessor}
+\begin{itemize}[leftmargin=*]
+\item \texttt{insert(x)}: agrega $x$.
+\item \texttt{delete(x)}: elimina $x$.
+\item \texttt{predecessor(x)}: mayor llave menor que $x$.
+\item \texttt{successor(x)}: menor llave mayor que $x$.
+\item \texttt{member(x)}: saber si $x$ pertenece a $S$.
+\end{itemize}
+
+\subsection{Por que BST no es suficiente}
+Un BST balanceado da $\bigO(\log n)$ por operacion y es optimo en el modelo de
+comparaciones. Pero si las llaves son enteros de $w$ bits, podemos usar su
+representacion binaria y obtener tiempos como:
+\[
+\bigO(\log w),\quad \bigO(\log_w n),\quad \bigO(\sqrt{\log n}).
+\]
+
+\subsection{Trie binario}
+Un trie binario guarda llaves segun sus bits. Cada nivel mira un bit. Una llave
+de $w$ bits tiene profundidad $w$. Buscar predecessor en un trie completo seria
+$\bigO(w)$, pero vEB, X-fast y Fusion Trees comprimen o aceleran esta idea.
+
+\subsection{MSB, LCP y bit critico}
+Para dos enteros $x,y$, el bit mas significativo donde difieren determina su
+orden. Si comparten un prefijo largo, estan cerca en el trie. Fusion Trees usan
+solo ciertos bits criticos para distinguir muchas llaves en paralelo.
+
+\newpage
+\section{El problema predecessor}
+
+\subsection{Definicion completa}
+Mantienes un conjunto $S$ de $n$ enteros de $w$ bits. Debes responder predecessor
+y successor bajo updates. Este problema es central porque muchas estructuras se
+reducen a el:
+\begin{itemize}[leftmargin=*]
+\item diccionarios ordenados;
+\item priority queues;
+\item busqueda por rangos;
+\item ordenamiento de enteros;
+\item estructuras de indices.
+\end{itemize}
+
+\subsection{Resultados que debes reconocer}
+\begin{center}
+\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.28\linewidth}}
+\toprule
+Estructura & Tiempo & Espacio \\
+\midrule
+BST comparaciones & $\bigO(\log n)$ & $\Theta(n)$ \\
+van Emde Boas & $\bigO(\log w)=\bigO(\log\log u)$ & $\Theta(u)$ \\
+X-fast tree & $\bigO(\log w)$ query, $\Theta(w)$ update & $\Theta(nw)$ \\
+Y-fast tree & $\bigO(\log w)$ esperado/amortizado & $\Theta(n)$ \\
+Fusion tree & $\bigO(\log_w n)$ & $\Theta(n)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Hint de clasificacion}
+Si el enunciado dice ``dado $x$, encuentra el elemento mas cercano menor/mayor''
+o ``mantener conjunto ordenado de enteros'', piensa en predecessor. Si solo
+necesitas membership, hashing basta. Si necesitas orden, necesitas predecessor o
+BST/integer tree.
+
+\newpage
+\section{van Emde Boas}
+
+\subsection{Idea principal}
+van Emde Boas divide el universo en una matriz de $\sqrt u$ clusters, cada uno
+de tamano $\sqrt u$. Un entero $x$ se escribe como:
+\[
+x=\langle c,i\rangle,
+\]
+donde:
+\begin{itemize}[leftmargin=*]
+\item $c$ es el numero de cluster;
+\item $i$ es la posicion dentro del cluster.
+\end{itemize}
+
+Si $u=2^w$, partir en $\sqrt u$ equivale a partir los bits de $x$ en mitad alta
+y mitad baja.
+
+\subsection{Campos de un nodo vEB}
+Un nodo vEB $V$ de universo $u$ guarda:
+\begin{itemize}[leftmargin=*]
+\item $V.min$: minimo presente.
+\item $V.max$: maximo presente.
+\item $V.cluster[c]$: vEB del cluster $c$.
+\item $V.summary$: vEB que guarda que clusters no estan vacios.
+\end{itemize}
+
+\subsection{Por que guardar min y max}
+$min$ y $max$ permiten resolver casos extremos en $\bigO(1)$:
+\begin{itemize}[leftmargin=*]
+\item si $x<V.min$, successor es $V.min$;
+\item si $x>V.max$, no hay successor;
+\item insertar en estructura vacia es inmediato.
+\end{itemize}
+Ademas, evitan tener que bajar recursivamente para conocer extremos.
+
+\subsection{Successor en vEB}
+Para $\succop(V,x=\langle c,i\rangle)$:
+\begin{enumerate}[leftmargin=*]
+\item Si $x<V.min$, responde $V.min$.
+\item Si el cluster $c$ existe y $i<V.cluster[c].max$, el successor esta dentro
+del mismo cluster:
+\[
+\langle c,\succop(V.cluster[c],i)\rangle.
+\]
+\item Si no, busca el siguiente cluster no vacio:
+\[
+c'=\succop(V.summary,c).
+\]
+\item La respuesta es el minimo de ese cluster:
+\[
+\langle c',V.cluster[c'].min\rangle.
+\]
+\end{enumerate}
+
+\subsection{Correctitud}
+Hay dos casos. Si existe un elemento mayor que $x$ dentro del mismo cluster, ese
+elemento es necesariamente menor que cualquier elemento de un cluster posterior,
+por lo que el successor esta ahi. Si no existe, todo successor debe estar en un
+cluster con indice mayor a $c$; el primer cluster no vacio da el menor elemento
+posible, usando su minimo.
+
+\subsection{Complejidad}
+Cada llamada reduce el universo de $u$ a $\sqrt u$:
+\[
+T(u)=T(\sqrt u)+\bigO(1).
+\]
+Si $u=2^w$, tras una llamada el numero de bits pasa de $w$ a $w/2$. Entonces:
+\[
+T(w)=T(w/2)+\bigO(1)=\bigO(\log w)=\bigO(\log\log u).
+\]
+
+\subsection{Problema de espacio}
+Un vEB completo crea clusters aunque esten vacios:
+\[
+\Theta(u)\text{ espacio}.
+\]
+Esto es demasiado si el universo es enorme y $n$ es pequeno. Por eso aparecen
+X-fast/Y-fast y la idea de no almacenar vacios.
+
+\subsection{Como escribir vEB en examen}
+\begin{enumerate}[leftmargin=*]
+\item Divido el universo en high/low de tamano $\sqrt u$.
+\item Cada nodo guarda min, max, clusters y summary.
+\item El summary guarda que clusters estan no vacios.
+\item Successor mira primero mismo cluster; si falla, usa summary para saltar al
+siguiente cluster.
+\item La recurrencia es $T(u)=T(\sqrt u)+\bigO(1)$.
+\item Tiempo $\bigO(\log\log u)$, espacio naive $\Theta(u)$.
+\end{enumerate}
+
+\newpage
+\section{X-fast trees}
+
+\subsection{Motivacion}
+vEB es rapido pero usa demasiado espacio. X-fast trees parten de una idea de
+trie binario: no almacenar ceros/vacios. Solo se guardan prefijos que existen en
+alguna llave.
+
+\subsection{Representacion}
+Para cada nivel del trie, se guarda una hash table con los prefijos existentes
+de ese nivel. Si una llave tiene $w$ bits, aporta un prefijo por nivel:
+\[
+\Theta(w)\text{ prefijos por llave}.
+\]
+Por eso el espacio es:
+\[
+\Theta(nw).
+\]
+
+\subsection{Query de successor/predecessor}
+Para buscar $x$:
+\begin{enumerate}[leftmargin=*]
+\item Haces binary search sobre niveles del trie.
+\item En cada nivel preguntas en la hash table si el prefijo de $x$ existe.
+\item Encuentras el nodo mas profundo del trie que coincide con un prefijo de
+$x$.
+\item Desde el punto donde la busqueda falla, usas punteros a hojas/predecessor
+o successor para responder.
+\end{enumerate}
+
+\subsection{Complejidad}
+Hay $w$ niveles. Binary search sobre niveles cuesta:
+\[
+\bigO(\log w).
+\]
+Cada prueba de prefijo es hash en $\bigO(1)$ esperado. Updates insertan o
+borran prefijos en todos los niveles:
+\[
+\Theta(w).
+\]
+
+\subsection{Cuando mencionar X-fast}
+X-fast es importante como paso intermedio hacia Y-fast. Si el problema pregunta
+``como ahorrar espacio de vEB'', menciona que no guardas clusters vacios y usas
+hash tables de prefijos, pero aun queda $\Theta(nw)$ espacio.
+
+\newpage
+\section{Y-fast trees}
+
+\subsection{Idea principal}
+Y-fast tree = X-fast tree + indirection.
+
+En lugar de guardar todas las llaves en un X-fast, guardas representantes de
+grupos. Cada grupo tiene tamano esperado $\Theta(w)$ y se maneja con una
+estructura local, por ejemplo BST balanceado.
+
+\subsection{Indirection}
+Indirection significa partir el conjunto grande en chunks pequenos:
+\[
+n\text{ elementos}\quad \to\quad \frac n w\text{ grupos de tamano }\Theta(w).
+\]
+El X-fast se usa solo sobre representantes de grupos, no sobre todos los
+elementos.
+
+\subsection{Query}
+Para predecessor/successor de $x$:
+\begin{enumerate}[leftmargin=*]
+\item Usa X-fast sobre representantes para ubicar el grupo candidato.
+\item Busca dentro del grupo local.
+\item Si hace falta, revisa grupo vecino.
+\end{enumerate}
+
+\subsection{Complejidad}
+X-fast sobre representantes:
+\[
+\bigO(\log w).
+\]
+Busqueda local en grupo de tamano $\Theta(w)$:
+\[
+\bigO(\log w).
+\]
+Entonces:
+\[
+\bigO(\log w).
+\]
+El espacio baja a:
+\[
+\Theta(n).
+\]
+Updates son $\bigO(\log w)$ amortizado/esperado porque de vez en cuando se
+parte o fusiona un grupo.
+
+\subsection{Correctitud}
+Los representantes ordenan los grupos y cada grupo cubre un intervalo de llaves.
+El predecessor de $x$ solo puede estar en el grupo donde caeria $x$ o en el
+grupo anterior. Como X-fast localiza ese vecindario y la estructura local
+resuelve dentro del grupo, la respuesta es correcta.
+
+\newpage
+\section{Fusion Trees}
+
+\subsection{Que problema resuelven}
+Fusion Trees resuelven predecessor/successor en:
+\[
+\bigO(\log_w n)
+\]
+tiempo con espacio lineal, en word RAM suficientemente fuerte. El slide lo
+presenta como:
+\[
+\bigO(\log_w n)
+\]
+y lo compara con vEB/Y-fast:
+\[
+\min\{\bigO(\log w),\bigO(\log_w n)\}.
+\]
+
+\subsection{Idea de alto nivel}
+Un BST normal tiene branching factor $2$, por eso altura $\log n$. Un Fusion
+Tree usa branching factor:
+\[
+B=w^{1/5}.
+\]
+Si cada nodo puede decidir en $\bigO(1)$ entre $B$ hijos, la altura es:
+\[
+\log_B n=\log_{w^{1/5}}n=\bigO(\log_w n).
+\]
+
+\subsection{El problema dentro de un nodo}
+Un nodo guarda:
+\[
+x_0<x_1<\cdots<x_{k-1},\qquad k=\bigO(w^{1/5}).
+\]
+Para bajar al hijo correcto, dado $q$ necesitas encontrar predecessor/successor
+entre esas $k$ llaves en $\bigO(1)$. No puedes comparar una por una.
+
+\subsection{Trie conceptual y bits importantes}
+Imagina un trie binario con las $k$ llaves del nodo. Para distinguir $k$ llaves
+ordenadas, no necesitas todos los $w$ bits. Solo necesitas los niveles donde el
+trie se ramifica. Hay a lo mucho:
+\[
+k-1
+\]
+nodos internos relevantes, por tanto $\bigO(k)$ bits importantes.
+
+\subsection{Sketch}
+El sketch de una llave $x$ extrae esos bits importantes:
+\[
+\Sketch(x)=\text{bits de }x\text{ en posiciones criticas}.
+\]
+Para las llaves guardadas en el nodo:
+\[
+\Sketch(x_0)<\Sketch(x_1)<\cdots<\Sketch(x_{k-1}).
+\]
+Esto preserva el orden entre las llaves almacenadas.
+
+\subsection{Cuidado: sketch de query no basta}
+Aunque los sketches preservan el orden de las llaves, $\Sketch(q)$ para una
+query arbitraria puede caer en una posicion que no corresponde al predecessor
+real. Por eso se necesita corregir usando el longest common prefix entre $q$ y
+las llaves vecinas candidatas.
+
+\subsection{Consulta dentro de un nodo}
+Conceptualmente:
+\begin{enumerate}[leftmargin=*]
+\item Calcula $\Sketch(q)$.
+\item Compara en paralelo contra los sketches de las llaves del nodo.
+\item Obtiene candidatos vecinos $x_i,x_{i+1}$.
+\item Usa LCP/bit critico para decidir donde falla la busqueda real en el trie.
+\item Devuelve el hijo correcto o la llave predecessor/successor local.
+\end{enumerate}
+
+\subsection{Por que cabe en una palabra}
+Con $k=\bigO(w^{1/5})$, cada sketch tiene $\bigO(k)$ bits. Todos los sketches
+juntos usan:
+\[
+\bigO(k^2)=\bigO(w^{2/5})
+\]
+bits, que cabe en $\bigO(1)$ palabras. Por eso se pueden comparar en paralelo
+con word tricks.
+
+\subsection{Complejidad}
+Cada nodo se procesa en $\bigO(1)$. La altura del arbol es:
+\[
+\bigO(\log_w n).
+\]
+Entonces predecessor/successor cuesta:
+\[
+\bigO(\log_w n).
+\]
+
+\subsection{RAM AC0 y multiplicacion}
+Las versiones clasicas usan multiplicacion para empaquetar/extractar bits. En
+RAM AC0 la multiplicacion no esta permitida. Por eso el slide separa el modelo:
+debes saber que no todas las operaciones word-RAM son gratis en todos los
+modelos.
+
+\subsection{Plantilla de examen para Fusion Trees}
+\begin{enumerate}[leftmargin=*]
+\item Construyo un B-tree con branching factor $w^{1/5}$.
+\item En cada nodo guardo $k=\bigO(w^{1/5})$ llaves.
+\item Uso bits criticos del trie virtual para formar sketches.
+\item Los sketches de las llaves preservan orden.
+\item Comparo sketches en paralelo para encontrar candidato en $\bigO(1)$.
+\item Corrijo con LCP/bit de falla para queries que no son llaves.
+\item Altura $\bigO(\log_w n)$, espacio lineal.
+\end{enumerate}
+
+\newpage
+\section{Ordenamiento de enteros}
+
+\subsection{Por que se puede superar $\bigO(n\log n)$}
+El lower bound $\Omega(n\log n)$ aplica al modelo de comparaciones. Si las llaves
+son enteros de $w$ bits, puedes mirar digitos/bits directamente. Por eso
+counting sort, radix sort y algoritmos avanzados pueden ser lineales bajo
+condiciones sobre $w$.
+
+\subsection{Counting sort}
+Counting sort cuenta cuantas veces aparece cada valor del universo. Para llaves
+en $[0,2^w)$:
+\[
+\bigO(n+2^w).
+\]
+Es lineal si:
+\[
+2^w=\bigO(n)\quad\Longleftrightarrow\quad w=\bigO(\log n).
+\]
+
+\subsection{Radix sort}
+Radix sort divide cada entero en digitos y ordena por digito usando counting
+sort estable. Si cada digito tiene $\Theta(\log n)$ bits, hay $n^{\Theta(1)}$
+posibles valores por digito y cada pasada cuesta $\bigO(n)$.
+
+Numero de pasadas:
+\[
+\Theta\left(\frac{w}{\log n}\right).
+\]
+Complejidad:
+\[
+\bigO\left(n\frac{w}{\log n}\right).
+\]
+Es lineal si:
+\[
+w=\bigO(\log n).
+\]
+
+\subsection{Tabla de resultados}
+\begin{center}
+\begin{tabular}{p{0.30\linewidth}p{0.32\linewidth}p{0.26\linewidth}}
+\toprule
+Metodo & Complejidad & Condicion/nota \\
+\midrule
+Comparaciones & $\bigO(n\log n)$ & sin condiciones \\
+Counting sort & $\bigO(n+2^w)$ & lineal si $w=\bigO(\log n)$ \\
+Radix sort & $\bigO(nw/\log n)$ & lineal si $w=\bigO(\log n)$ \\
+vEB sorting & $\bigO(n\log w)$ & insertar/extract predecessor \\
+Signature sort & $\bigO(n)$ & bajo word-size grande \\
+Han 2004 & $\bigO(n\log\log n)$ & RAM AC0 \\
+Han-Thorup & aleatorizado sublog & resultado avanzado \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Equivalencia sorting - priority queue}
+Si tienes una priority queue con operaciones en $\bigO(f(n,w))$, puedes ordenar:
+\begin{enumerate}[leftmargin=*]
+\item Insertas los $n$ elementos.
+\item Extraes minimos en orden.
+\end{enumerate}
+Costo:
+\[
+\bigO(nf(n,w)).
+\]
+
+En sentido inverso, si tienes sorting en $\bigO(T(n,w))$, puedes construir
+priority queues con costo amortizado relacionado:
+\[
+\bigO(T(n,w)/n).
+\]
+El slide menciona Quickheap como ejemplo conceptual.
+
+\newpage
+\section{Packed sort}
+
+\subsection{Idea}
+Packed sort aprovecha que muchos enteros pequenos caben en una palabra. Si cada
+entero tiene $b$ bits y:
+\[
+w=\Omega(b\log n\log\log n),
+\]
+entonces se pueden ordenar $n$ enteros de $b$ bits en $\bigO(n)$.
+
+\subsection{Por que importa}
+Signature sort reduce el problema original a ordenar firmas/hashes de pocos
+bits. Cuando esos valores cumplen la condicion de packed sort, el caso base se
+resuelve en tiempo lineal.
+
+\subsection{Hint de examen}
+No necesitas implementar packed sort. Debes saber su rol: es el caso base
+lineal cuando los enteros ya fueron reducidos a suficientes pocos bits por
+recursion/signatures.
+
+\newpage
+\section{Signature sort}
+
+\subsection{Objetivo}
+Signature sort busca ordenar $n$ enteros de $w$ bits en tiempo lineal bajo una
+condicion sobre $w$, usando hashing, tries comprimidos y packed sort.
+
+\subsection{Condicion base}
+Los slides asumen convenientemente:
+\[
+w\ge \log^{2+\epsilon}n\log\log n.
+\]
+La idea es tener palabras suficientemente grandes para empaquetar y manipular
+digitos.
+
+\subsection{Paso 1: partir en digitos}
+Particionas cada entero en:
+\[
+\log^\epsilon n
+\]
+bloques/digitos de igual tamano. Cada digito tiene al menos $\log^2 n$ bits
+bajo la condicion asumida.
+
+\subsection{Paso 2: hashing perfecto de digitos}
+Aunque el universo de cada digito es enorme, solo aparecen:
+\[
+n\log^\epsilon n
+\]
+digitos en el input. Se reemplaza cada digito por un hash perfecto de
+$\bigO(\log n)$ bits.
+
+Esto preserva identidad: si dos digitos eran iguales, tienen la misma firma; si
+eran distintos, no colisionan. Pero no preserva orden. Este detalle es crucial.
+
+\subsection{Paso 3: signatures compactas}
+Cada entero ahora se representa por $\log^\epsilon n$ firmas de $\bigO(\log n)$
+bits. El total por entero es:
+\[
+\bigO(\log^{1+\epsilon}n).
+\]
+Ahora los objetos son mucho mas pequenos que los enteros originales.
+
+\subsection{Paso 4: trie comprimido de signatures}
+Construyes un trie sobre las signatures. Luego comprimes nodos que no ramifican.
+El trie comprimido tiene:
+\[
+\bigO(n)
+\]
+nodos, no $\bigO(n\log^\epsilon n)$.
+
+El inorder del trie ordena por signatures, pero todavia no necesariamente por
+valores originales, porque el hashing no preserva orden de digitos.
+
+\subsection{Paso 5: ordenar aristas recursivamente}
+Para corregir el orden real, ordenas las aristas del trie por tuplas:
+\[
+(\text{indice del nodo},\text{primer digito original},\text{indice del hijo}).
+\]
+Esto reduce la cantidad de bits relevantes en cada nivel recursivo. Despues de
+una cantidad constante de niveles dependiente de $\epsilon$, llegas a enteros de:
+\[
+b=\bigO\left(\frac{w}{\log n\log\log n}\right)
+\]
+bits, donde packed sort aplica en $\bigO(n)$.
+
+\subsection{Paso 6: permutar hijos}
+Una vez ordenadas las aristas segun el valor original, permutas los hijos de
+cada nodo del trie comprimido en ese orden.
+
+\subsection{Paso 7: inorder traversal}
+Con los hijos ya ordenados correctamente, el inorder traversal del trie da los
+enteros originales ordenados.
+
+\subsection{Correctitud}
+El trie agrupa enteros por secuencias de digitos. El hashing permite construir
+la estructura compacta sin perder igualdad de digitos. Como el hashing no
+preserva orden, el algoritmo corrige el orden de las aristas usando los digitos
+originales. Una vez que cada conjunto de hijos esta ordenado por el digito real
+correspondiente, recorrer el trie en orden produce exactamente el orden
+lexicografico de los digitos, que coincide con el orden numerico de enteros.
+
+\subsection{Complejidad}
+Cada fase procesa $\bigO(n)$ objetos por nivel. La recursion tiene cantidad
+constante de niveles para $\epsilon$ fijo y el caso base packed sort es lineal.
+Por tanto:
+\[
+\bigO(n).
+\]
+
+\subsection{Que memorizar para examen}
+No memorices detalles de implementacion. Memoriza la historia:
+\begin{enumerate}[leftmargin=*]
+\item dividir enteros en digitos;
+\item hash perfecto para reducir representacion;
+\item construir trie comprimido;
+\item ordenar aristas recursivamente usando digitos originales;
+\item usar packed sort como caso base;
+\item inorder traversal da el orden final.
+\end{enumerate}
+
+\newpage
+\section{Como reconocer que estructura usar}
+
+\begin{center}
+\begin{tabular}{p{0.36\linewidth}p{0.28\linewidth}p{0.25\linewidth}}
+\toprule
+Frase del problema & Usa & Razon \\
+\midrule
+Predecessor con universo pequeno & vEB & $\bigO(\log\log u)$, espacio universo \\
+Predecessor con espacio lineal & Y-fast tree & vEB-like sin $\Theta(u)$ espacio \\
+Predecessor teorico rapido en word RAM & Fusion tree & branching alto con sketches \\
+Solo membership & Hashing & no necesitas orden \\
+Ordenar enteros con $w=\bigO(\log n)$ & radix/counting & tiempo lineal \\
+Ordenar enteros grandes teorico & signature sort & reduce bits y usa packed sort \\
+Priority queue y sorting & equivalencia sorting-PQ & reducciones entre ambos \\
+Modelo sin multiplicacion & RAM AC0 & cuidado con word tricks \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Plantillas de solucion teorica}
+
+\subsection{Plantilla vEB}
+\begin{enumerate}[leftmargin=*]
+\item Universo $u=2^w$.
+\item Represento $x$ como $(high(x),low(x))$.
+\item Cada nodo guarda min, max, clusters y summary.
+\item Para successor, primero intento mismo cluster; si falla, busco siguiente
+cluster no vacio en summary.
+\item Correctitud por separacion lexicografica de cluster y posicion interna.
+\item Recurrencia $T(u)=T(\sqrt u)+\bigO(1)$, entonces $\bigO(\log\log u)$.
+\item Espacio naive $\Theta(u)$.
+\end{enumerate}
+
+\subsection{Plantilla Y-fast}
+\begin{enumerate}[leftmargin=*]
+\item Agrupo elementos en buckets de tamano $\Theta(w)$.
+\item Guardo representantes en un X-fast tree.
+\item Cada bucket tiene BST local.
+\item Query localiza bucket candidato con X-fast y busca localmente.
+\item Updates parten/fusionan buckets para mantener tamano.
+\item Tiempo $\bigO(\log w)$ esperado/amortizado, espacio $\Theta(n)$.
+\end{enumerate}
+
+\subsection{Plantilla Fusion Tree}
+\begin{enumerate}[leftmargin=*]
+\item Uso B-tree de grado $w^{1/5}$.
+\item En cada nodo debo decidir entre $w^{1/5}$ hijos en $\bigO(1)$.
+\item Tomo bits criticos del trie virtual y construyo sketches.
+\item Comparo sketches empaquetados en paralelo.
+\item Corrijo candidato con LCP/bit de falla.
+\item Altura $\bigO(\log_w n)$, espacio lineal.
+\end{enumerate}
+
+\subsection{Plantilla radix/counting}
+\begin{enumerate}[leftmargin=*]
+\item Si universo pequeno, counting sort cuesta $\bigO(n+u)$.
+\item Si $u=2^w$ y $w=\bigO(\log n)$, counting puede ser lineal.
+\item Para radix, parto cada entero en digitos de $\Theta(\log n)$ bits.
+\item Cada pasada usa counting sort estable.
+\item Numero de pasadas $\Theta(w/\log n)$.
+\item Costo $\bigO(nw/\log n)$.
+\end{enumerate}
+
+\newpage
+\section{Mapa de slides cubiertos}
+
+\subsection*{eda\_slides\_06\_integer.pdf}
+\begin{itemize}[leftmargin=*]
+\item Paginas 1--5: objetivos del bloque Integer I.
+\item Paginas 6--11: modelos: word, transdichotomous RAM, word RAM, cell probe,
+pointer machine.
+\item Paginas 12--17: predecessor problem y tabla de resultados: BST, vEB,
+Y-fast, Fusion Trees y lower bounds.
+\item Paginas 18--26: van Emde Boas, coordenadas jerarquicas, clusters, summary,
+min/max y successor.
+\item Paginas 27--30: tree view e indirection.
+\item Paginas 31--35: ahorro de espacio en vEB.
+\item Paginas 36--40: X-fast trees.
+\item Paginas 41--45: Y-fast trees.
+\item Paginas 46--48: cierre, referencias y acknowledgements.
+\end{itemize}
+
+\subsection*{Estructuras\_de\_Datos\_Avanzadas\_\_\_Modelo\_de\_enteros\_II.pdf}
+\begin{itemize}[leftmargin=*]
+\item Paginas 1--5: objetivos de RAM AC0 y Fusion Trees.
+\item Paginas 6--10: modelo RAM AC0, operaciones permitidas y ausencia de
+multiplicacion.
+\item Paginas 11--18: definicion de Fusion Trees y tiempos
+$\bigO(\log_w n)$.
+\item Paginas 19--25: estructura tipo B-tree con nodos de fusion tree.
+\item Paginas 26--34: sketching usando trie binario y virtual tree.
+\item Paginas 35--40: sketching perfecto y preservacion de orden solo entre
+llaves.
+\item Paginas 41--48: consultas, sketch de query, LCP y punto de falla.
+\item Paginas 49--52: resumen y cierre.
+\end{itemize}
+
+\subsection*{Estructuras\_de\_Datos\_Avanzadas\_\_\_Ordenamiento\_en\_tiempo\_lineal.pdf}
+\begin{itemize}[leftmargin=*]
+\item Paginas 1--6: objetivos y relacion con priority queues.
+\item Paginas 7--11: equivalencia entre sorting y priority queues.
+\item Paginas 12--15: tabla de resultados de ordenamiento de enteros.
+\item Paginas 16--22: signature sort, condicion base y particion en digitos.
+\item Paginas 23--28: hashing perfecto de digitos y reduccion de bits.
+\item Paginas 29--34: packed sort y trie comprimido.
+\item Paginas 35--39: trie comprimido y problema de orden real.
+\item Paginas 40--46: ordenamiento recursivo de aristas del trie.
+\item Paginas 47--54: inorder traversal y resumen de signature sort.
+\item Paginas 55--59: resumen y cierre.
+\end{itemize}
+
+\input{slide_index_detail.tex}
+
+\section*{Cierre: si tienes poco tiempo}
+Prioriza asi:
+\begin{enumerate}[leftmargin=*]
+\item Modelos: word RAM, AC0 RAM, cell probe, universo $u=2^w$.
+\item Predecessor/successor: definicion exacta y por que BST es $\bigO(\log n)$.
+\item vEB: clusters, summary, min/max, recurrence $\bigO(\log\log u)$.
+\item X-fast/Y-fast: prefijos hash e indirection para espacio lineal.
+\item Fusion Trees: B-tree de grado $w^{1/5}$, sketches y $\bigO(\log_w n)$.
+\item Counting/radix sort: condiciones para linealidad.
+\item Signature sort: historia conceptual, no implementacion.
+\end{enumerate}
+
+Para una respuesta de examen, casi siempre basta con explicar el invariante, la
+operacion principal y la complejidad. No escribas formulas avanzadas si no las
+puedes conectar con el problema.
+
+\end{document}
